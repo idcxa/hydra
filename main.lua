@@ -101,48 +101,6 @@ end
 mapwx = map.width * map.texturesize - love.graphics.getWidth()
 mapwy = map.height * map.texturesize - love.graphics.getHeight()
 
-
-function cameraCollision()
-	if camMode == true then
-		if camera.pseudox < 0 then
-			camera.x = camera.pseudox;
-			camMode = false
-		end
-		if camera.pseudox > -mapwx then
-			camera.x = camera.pseudox;
-			camMode = false
-		end
-		if camera.pseudoy < 0 then
-			camera.y = camera.pseudoy;
-			camMode = false
-		end
-		if camera.pseudoy > -mapwy then
-			camera.y = camera.pseudoy;
-			camMode = false
-		end
-	end
-	camMode = true
-	if camera.x > 0 then
-		camera.x = 0;
-		camMode = false
-	end
-	if camera.x < -mapwx then
-		camera.x = -mapwx;
-		camMode = false
-	end
-	if camera.y > 0 then
-		camera.y = 0;
-		camMode = false
-	end
-	if camera.y < -mapwy then
-		camera.y = -mapwy;
-		camMode = false
-	end
-	print(camMode)
-	camMode = true
-end
-
-
 --[[
 1. camera follows psuedo camera 		[state 1]
 2. camera hits border 					[enter state 2]
@@ -155,7 +113,7 @@ end
 camModex = 1
 camModey = 1
 
-function cameraCollision2()
+function cameraCollision()
 	if camera.pseudox > 0 then
 		camModex = 2;
 	end
@@ -181,7 +139,7 @@ function love.update(dt)
 
 	camModex = 1
 	camModey = 1
-	cameraCollision2()
+	cameraCollision()
 	--print(camMode)
 
 	if camModex == 1 then
@@ -213,7 +171,7 @@ function drawmap()
 	for j = 1,map.width do
 		for i = 1,map.height do
 			--print(map.map[i+map.width*(j-1)])
-			local c = math.floor(1 * map.map[i + (j-1)*map.height] + 0.5)
+			local c = math.floor(1 * map.map[i + (j-1)*map.height] + 0.2)
 			love.graphics.setColor(c, c, c, 1)
 			love.graphics.rectangle("fill", j*map.texturesize - map.texturesize + camera.x, i*map.texturesize - map.texturesize + camera.y, map.texturesize, map.texturesize)
 			love.graphics.setColor(1, 1, 1, 1)
