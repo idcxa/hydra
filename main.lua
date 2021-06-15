@@ -111,7 +111,6 @@ mapwy = map.height * map.texturesize - love.graphics.getHeight()
 4. psuedo camera comes away from border [enter state 1]
 5. camera follows pseudo camera			[state 1]
 ]]--
-
 camModex = 1
 camModey = 1
 
