@@ -94,6 +94,8 @@ function love.load()
 	playerTexture = love.graphics.newImage("assets/shork.png");
 	player.ox = playerTexture:getPixelHeight()/2;
 	player.oy = playerTexture:getPixelWidth()/2;
+	player.sx = map.texturesize / playerTexture:getPixelHeight();
+	player.sy = map.texturesize / playerTexture:getPixelWidth();
 	noise()
 	cameraSet()
 end
@@ -128,6 +130,8 @@ function cameraCollision()
 	end
 end
 
+function playerCollision()
+end
 
 function love.update(dt)
 	playerTrans = love.math.newTransform(player.x, player.y, player.angle, player.sx, player.sy, player.ox, player.oy, player.kx, player.ky);
@@ -170,16 +174,10 @@ function drawmap()
 	screeny = screenx
 	for j = 1,map.width do
 		for i = 1,map.height do
-			--print(map.map[i+map.width*(j-1)])
 			local c = math.floor(1 * map.map[i + (j-1)*map.height] + 0.2)
 			love.graphics.setColor(c, c, c, 1)
 			love.graphics.rectangle("fill", j*map.texturesize - map.texturesize + camera.x, i*map.texturesize - map.texturesize + camera.y, map.texturesize, map.texturesize)
 			love.graphics.setColor(1, 1, 1, 1)
-			--[[if map.map[i + (j-1) * (map.width)] == 1 then
-				love.graphics.rectangle("line", j*map.texturesize - map.texturesize + camera.x, i*map.texturesize - map.texturesize + camera.y, map.texturesize, map.texturesize)
-			else
-				love.graphics.rectangle("fill", j*map.texturesize - map.texturesize + camera.x, i*map.texturesize - map.texturesize + camera.y, map.texturesize, map.texturesize)
-			end]]--
 		end
 	end
 end
