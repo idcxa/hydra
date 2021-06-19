@@ -1,8 +1,7 @@
 collidables = {}
-
 firstmap = {
-width = 25,
-height = 20,
+width = 20,
+height = 30,
 texturesize = 80,
 map = {}
 }
