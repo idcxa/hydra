@@ -46,32 +46,33 @@ function random()
 end
 
 function direction()
-	movement = vector.new_vector{0,0}
-	if love.keyboard.isDown("left") then
-		movement[1] = player.speed
-		if love.keyboard.isDown("up") then
-			movement[1] = player.speed*math.sin(45)
-			movement[2] = player.speed*math.sin(45)
-		end
-		if love.keyboard.isDown("down") then
-			movement[1] = player.speed*math.sin(45)
-			movement[2] = -player.speed*math.sin(45)
-		end
-	elseif love.keyboard.isDown("right")  then
-		movement[1] = -player.speed
-		if love.keyboard.isDown("up") then
-			movement[1] = -player.speed*math.sin(45)
-			movement[2] = player.speed*math.sin(45)
-		end
-		if love.keyboard.isDown("down") then
-			movement[1] = -player.speed*math.sin(45)
-			movement[2] = -player.speed*math.sin(45)
-		end
-	end
+	movement = {0,0}
+	angle = player.speed*math.sin(45)
 	if love.keyboard.isDown("up") then
 		movement[2] = player.speed
 	elseif love.keyboard.isDown("down")  then
 		movement[2] = -player.speed
+	end
+	if love.keyboard.isDown("left") then
+		movement[1] = player.speed
+		if love.keyboard.isDown("up") then
+			movement[1] = angle
+			movement[2] = angle
+		end
+		if love.keyboard.isDown("down") then
+			movement[1] = angle
+			movement[2] = -angle
+		end
+	elseif love.keyboard.isDown("right")  then
+		movement[1] = -player.speed
+		if love.keyboard.isDown("up") then
+			movement[1] = -angle
+			movement[2] = angle
+		end
+		if love.keyboard.isDown("down") then
+			movement[1] = -angle
+			movement[2] = -angle
+		end
 	end
 	return movement
 end
@@ -95,7 +96,7 @@ end
 
 
 function love.load()
-	playerTexture = love.graphics.newImage("assets/shork.png")
+	playerTexture = love.graphics.newImage("assets/default.jpg")
 	player.ox = playerTexture:getPixelHeight()/2
 	player.oy = playerTexture:getPixelWidth()/2
 	player.sx = map.texturesize *0.8 / playerTexture:getPixelHeight()
@@ -138,66 +139,88 @@ function loadCollision()
 	collidables = {}
 	for j = 1,map.width do
 		for i = 1,map.height do
-			local c = math.floor(1 * map.map[i + (j-1)*map.height] + 0.5)
-			if c == 0 then
+			local c = math.floor(1 * map.map[i + (j-1)*map.height] + 0.2)
+			if c == 1 then
 				collidables[i + (j-1)*map.height] = collidables[i + (j-1)*map.height] or {}
 				local t = {
 					j*map.texturesize - map.texturesize + camera.x,
-					i*map.texturesize - map.texturesize + camera.y
+					i*map.texturesize - map.texturesize + camera.y,
+					j,
+					i
 				}
-				table.insert(collidables, t)
+				if t ~= nil and t[1] ~= nil and t[2] ~= nil then
+					table.insert(collidables, t)
+				end
 			end
 		end
 	end
-	collidables = {}
-	table.insert(collidables, {700,600})
-	table.insert(collidables, {700,200})
+	--collidables = {}
+	table.insert(collidables, {map.texturesize*10 + camera.x, map.texturesize*15 + camera.y})
+	table.insert(collidables, {map.texturesize*5 + camera.x, map.texturesize*15 + camera.y})
+	table.insert(collidables, {map.texturesize*12 + camera.x, map.texturesize*15 + camera.y})
+	--table.insert(collidables, {700,200})
 end
 
 function playerCollision(t)
+	-- texture size
 	local ts = map.texturesize
-	if player.x < ts/2 - player.speed/2 then
-		player.x = ts/2
+	-- player size
+	local ps = map.texturesize*0.8
+	-- collision width
+	local cw = 5
+
+	-- map border collision
+	-- left
+	if player.x < ps/2 - player.speed/2 then
+		player.x = ps/2
 		camera.pseudox = love.graphics.getWidth()/2
 	end
-	print(camera.pseudoy, -map.texturesize*map.height + love.graphics.getHeight()/2)
+	-- right
 	if player.x > map.width * ts - ts/2 + camera.x + player.speed/2 then
 		player.x = map.width * ts - ts/2 + camera.x
 		camera.pseudox = -map.texturesize*map.width + love.graphics.getWidth()/2
 	end
+	-- top
 	if player.y < ts/2 - player.speed/2 then
 		player.y = ts/2
 		camera.pseudoy = love.graphics.getHeight()/2
 	end
+	-- bottom
 	if player.y > map.height * ts - ts/2 + camera.y + player.speed/2 then
 		player.y = map.height * ts - ts/2 + camera.y
 		camera.pseudoy = -map.texturesize*map.height + love.graphics.getHeight()/2
 	end
-	--[[for _, v in pairs(collidables) do
-		if v[1] ~= nil then
-			local left, right, top, bottom
-			--right
-			if player.x < v[1] + ts*3/2 and player.x > v[1] + ts
-				and player.y + ts/2 > v[2] and player.y - ts*3/2 < v[2] then
-				--player.x = v[1] + ts/2 + ts
+
+	-- object collision
+	-- v display coordinates
+	for _, v in pairs(collidables) do
+		if v[2] ~= nil then
+			-- left
+			if v[2] - ps/2 + cw < player.y and player.y < v[2] + ts + ps/2 - cw
+				and v[1] - ps/2 < player.x and player.x < v[1] - ps/2 + cw
+				and t[1] <= 0 then
+				t[1] = 0
 			end
-			--left
-			if player.x > v[1] - ts/2 and player.x < v[1]
-				and v[2] - ts/2 < player.y and player.y < v[2] + ts*3/2 then
-				player.x = v[1] - ts/2
+			-- right
+			if v[2] - ps/2 + cw < player.y and player.y < v[2] + ts + ps/2 - cw
+				and v[1] + ts + ps/2 - cw < player.x and player.x < v[1] + ts + ps/2
+				and t[1] >= 0 then
+				t[1] = 0
 			end
-			--top
-			if player.y > v[2] - ts/2 and player.y < v[2] + ts/2
-				and v[1] - ts/2 - 10 < player.x  and player.x < v[1] + ts*3/2 then
-				player.y = v[2] - ts/2
+			-- top
+			if v[1] - ps/2 + cw < player.x and player.x < v[1] + ts + ps/2 - cw
+				and v[2] - ps/2 < player.y and player.y < v[2] - ps/2 + cw
+				and t[2] <= 0 then
+				t[2] = 0
 			end
-			--bottom
-			if player.y < v[2] + ts*3/2 and player.y > v[2] + ts/2
-				and player.x > v[1] and player.x < v[1] + ts then
-				player.y = v[2] + ts/2 + ts
+			-- bottom
+			if v[1] - ps/2 + cw < player.x and player.x < v[1] + ts + ps/2 - cw
+				and v[2] + ts + ps/2 - cw < player.y and player.y < v[2] + ts + ps/2
+				and t[2] >= 0 then
+				t[2] = 0
 			end
 		end
-	end]]--
+	end
 	return t
 end
 
@@ -206,13 +229,13 @@ function love.update(dt)
 
 	v = direction()
 
+	print(v[1], v[2])
+	loadCollision()
+	v = playerCollision(v)
+
 	camModex = 1
 	camModey = 1
 	cameraCollision()
-
-	loadCollision()
-	v = playerCollision(v)
-	--print(v[1], v[2])
 
 	camera.pseudox = camera.pseudox + v[1]
 	camera.pseudoy = camera.pseudoy + v[2]
@@ -228,7 +251,7 @@ function love.update(dt)
 		player.y = player.y - v[2]
 	end
 
-	--print(player.x, camera.x, camera.pseudox)
+	--print(player.x, camera.x, camera.pseudox, camModex)
 
 	if love.keyboard.isDown("w") then
 		noise()
@@ -239,7 +262,6 @@ function love.update(dt)
 	if love.keyboard.isDown("escape") or love.keyboard.isDown("q") then
 		love.event.quit()
 	end
-
 end
 
 function drawmap()
@@ -247,7 +269,7 @@ function drawmap()
 	screeny = screenx
 	for j = 1,map.width do
 		for i = 1,map.height do
-			local c = math.floor(1 * map.map[i + (j-1)*map.height] + 0.1)
+			local c = math.floor(1 * map.map[i + (j-1)*map.height] + 0.2)
 			love.graphics.setColor(c, c, c, 1)
 			love.graphics.rectangle("fill", j*map.texturesize - map.texturesize + camera.x, i*map.texturesize - map.texturesize + camera.y, map.texturesize, map.texturesize)
 			love.graphics.setColor(1, 1, 1, 1)
@@ -258,7 +280,10 @@ end
 function love.draw()
 	drawmap()
 	love.graphics.draw(playerTexture, playerTrans)
-	--love.graphics.rectangle("line", 700, 600, map.texturesize, map.texturesize)
-	--love.graphics.rectangle("line", 700, 200, map.texturesize, map.texturesize)
+	for _, v in pairs(collidables) do
+		if v[2] ~= nil then
+			love.graphics.rectangle("line", v[1], v[2], map.texturesize, map.texturesize)
+		end
+	end
 end
 
