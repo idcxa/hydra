@@ -32,7 +32,15 @@ camera = {
 function noise()
 	for j = 1,map.width do
 		for i = 1,map.height do
-			map.map[i+map.height*(j-1)] = love.math.noise(i+love.math.random(),j+love.math.random())
+			map.collision[i+map.height*(j-1)] = love.math.noise(i+love.math.random(),j+love.math.random())
+			local c = math.floor(1 * map.collision[i + (j-1)*map.height] + 0.2)
+			if c > 0 then
+				map.collision[i+map.height*(j-1)] = math.random(#collisionTextures)
+			else
+				map.collision[i+map.height*(j-1)] = 0
+			end
+
+			map.map[i+map.height*(j-1)] = math.random(#floorTextures)
 		end
 	end
 end
@@ -40,7 +48,8 @@ end
 function random()
 	for j = 1,map.width do
 		for i = 1,map.height do
-			map.map[i+map.height*(j-1)] = math.random(2)-1
+			map.map[i+map.height*(j-1)] 		= math.random(#floorTextures)
+			map.collision[i+map.height*(j-1)] 	= math.random(#collisionTextures)
 		end
 	end
 end
@@ -96,11 +105,13 @@ end
 
 
 function love.load()
-	playerTexture = love.graphics.newImage("assets/default.jpg")
+	love.graphics.setDefaultFilter("nearest", "nearest")
+	playerTexture = love.graphics.newImage("assets/player.png")
+
 	player.ox = playerTexture:getPixelHeight()/2
 	player.oy = playerTexture:getPixelWidth()/2
-	player.sx = map.texturesize *0.8 / playerTexture:getPixelHeight()
-	player.sy = map.texturesize *0.8 / playerTexture:getPixelWidth()
+	player.sx = map.texturesize * 0.8 / playerTexture:getPixelHeight()
+	player.sy = map.texturesize * 0.8 / playerTexture:getPixelWidth()
 	noise()
 	cameraSet()
 end
@@ -139,25 +150,30 @@ function loadCollision()
 	collidables = {}
 	for j = 1,map.width do
 		for i = 1,map.height do
-			local c = math.floor(1 * map.map[i + (j-1)*map.height] + 0.2)
-			if c == 1 then
+			--local c = math.floor(1 * map.collision[i + (j-1)*map.height] + 0.2)
+			local c = map.collision[i + (j-1)*map.height]
+			if c > 0 then
 				collidables[i + (j-1)*map.height] = collidables[i + (j-1)*map.height] or {}
 				local t = {
 					j*map.texturesize - map.texturesize + camera.x,
 					i*map.texturesize - map.texturesize + camera.y,
-					j,
-					i
+					{0, 0, 16, 16},
+					c
 				}
-				if t ~= nil and t[1] ~= nil and t[2] ~= nil then
-					table.insert(collidables, t)
+				if c == 1 then
+					t[3] = {5, 2, 16, 16}
 				end
+				if c == 2 then
+					t[3] = {3, 2, 14, 16}
+				end
+				table.insert(collidables, t)
 			end
 		end
 	end
 	--collidables = {}
-	table.insert(collidables, {map.texturesize*10 + camera.x, map.texturesize*15 + camera.y})
-	table.insert(collidables, {map.texturesize*5 + camera.x, map.texturesize*15 + camera.y})
-	table.insert(collidables, {map.texturesize*12 + camera.x, map.texturesize*15 + camera.y})
+	--table.insert(collidables, {map.texturesize*10 + camera.x, map.texturesize*15 + camera.y})
+	--table.insert(collidables, {map.texturesize*5 + camera.x, map.texturesize*15 + camera.y})
+	--table.insert(collidables, {map.texturesize*12 + camera.x, map.texturesize*15 + camera.y})
 	--table.insert(collidables, {700,200})
 end
 
@@ -168,6 +184,7 @@ function playerCollision(t)
 	local ps = map.texturesize*0.8
 	-- collision width
 	local cw = 5
+	scale = map.texturesize/map.pixelsize
 
 	-- map border collision
 	-- left
@@ -195,26 +212,29 @@ function playerCollision(t)
 	-- v display coordinates
 	for _, v in pairs(collidables) do
 		if v[2] ~= nil then
+			c = v[3]
+
 			-- left
-			if v[2] - ps/2 + cw < player.y and player.y < v[2] + ts + ps/2 - cw
-				and v[1] - ps/2 < player.x and player.x < v[1] - ps/2 + cw
+			if v[2] - ps/2 + cw + c[2]*scale < player.y and player.y < v[2] + ts + ps/2 - cw
+				and v[1] - ps/2 + c[1]*scale < player.x and player.x < v[1] - ps/2 + cw + c[1]*scale
 				and t[1] <= 0 then
 				t[1] = 0
 			end
 			-- right
-			if v[2] - ps/2 + cw < player.y and player.y < v[2] + ts + ps/2 - cw
-				and v[1] + ts + ps/2 - cw < player.x and player.x < v[1] + ts + ps/2
+			if v[2] - ps/2 + cw + c[2]*scale < player.y and player.y < v[2] + ts + ps/2 - cw
+				and v[1] + ts + ps/2 - cw - (16-c[3])*scale < player.x and player.x < v[1] + ts + ps/2 - (16-c[3])*scale
 				and t[1] >= 0 then
 				t[1] = 0
 			end
 			-- top
-			if v[1] - ps/2 + cw < player.x and player.x < v[1] + ts + ps/2 - cw
-				and v[2] - ps/2 < player.y and player.y < v[2] - ps/2 + cw
+			if v[1] - ps/2 + cw + c[1]*scale < player.x and player.x < v[1] + ts + ps/2 - cw - (16-c[3])*scale
+				and v[2] - ps/2 + c[2]*scale < player.y and player.y < v[2] - ps/2 + cw + c[2]*scale
 				and t[2] <= 0 then
+					print(v[1] - ps/2 + cw + c[1]*2, player.x)
 				t[2] = 0
 			end
 			-- bottom
-			if v[1] - ps/2 + cw < player.x and player.x < v[1] + ts + ps/2 - cw
+			if v[1] - ps/2 + cw + c[1]*scale < player.x and player.x < v[1] + ts + ps/2 - cw - (16-c[3])*scale
 				and v[2] + ts + ps/2 - cw < player.y and player.y < v[2] + ts + ps/2
 				and t[2] >= 0 then
 				t[2] = 0
@@ -229,7 +249,6 @@ function love.update(dt)
 
 	v = direction()
 
-	print(v[1], v[2])
 	loadCollision()
 	v = playerCollision(v)
 
@@ -251,7 +270,6 @@ function love.update(dt)
 		player.y = player.y - v[2]
 	end
 
-	--print(player.x, camera.x, camera.pseudox, camModex)
 
 	if love.keyboard.isDown("w") then
 		noise()
@@ -269,21 +287,46 @@ function drawmap()
 	screeny = screenx
 	for j = 1,map.width do
 		for i = 1,map.height do
-			local c = math.floor(1 * map.map[i + (j-1)*map.height] + 0.2)
-			love.graphics.setColor(c, c, c, 1)
-			love.graphics.rectangle("fill", j*map.texturesize - map.texturesize + camera.x, i*map.texturesize - map.texturesize + camera.y, map.texturesize, map.texturesize)
-			love.graphics.setColor(1, 1, 1, 1)
+			local c = map.map[i + (j-1)*map.height]
+			love.graphics.draw(testTiles, floorTextures[c], (j*map.texturesize - map.texturesize + camera.x)/scale, (i*map.texturesize - map.texturesize + camera.y)/scale)
+		end
+	end
+end
+
+function drawcollision()
+	screenx = love.graphics.getWidth()
+	screeny = screenx
+	for j = 2,map.width-1 do
+		for i = 2,map.height-1 do
+			local c = map.collision[i + (j-1)*map.height]
+			r = math.random(#floorTextures)
+			if c > 0 then
+				love.graphics.draw(testTiles, collisionTextures[c], (j*map.texturesize - map.texturesize + camera.x)/scale, (i*map.texturesize - map.texturesize + camera.y)/scale)
+			end
 		end
 	end
 end
 
 function love.draw()
+
+	love.graphics.push()
+	scale = map.texturesize/16
+	love.graphics.scale(scale, scale)
 	drawmap()
+	drawcollision()
+	love.graphics.pop()
+
 	love.graphics.draw(playerTexture, playerTrans)
+	love.graphics.push()
+	scale = map.texturesize/16
+	love.graphics.scale(scale, scale)
 	for _, v in pairs(collidables) do
-		if v[2] ~= nil then
-			love.graphics.rectangle("line", v[1], v[2], map.texturesize, map.texturesize)
+		if v[2] ~= nil and v[4] ~= nil then
+			--local c = math.floor(1 * map.map[i + (j-1)*map.height] + 0.2)
+			love.graphics.draw(testTiles, collisionTextures[v[4]], v[1]/scale, v[2]/scale)
+			--love.graphics.rectangle("fill", v[1]/scale, v[2]/scale, map.texturesize, map.texturesize)
 		end
 	end
+	love.graphics.pop()
 end
 
