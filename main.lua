@@ -10,6 +10,8 @@ map = firstmap
 player = {
 	x = love.graphics.getWidth()/2,
 	y = love.graphics.getHeight()/2,
+	dx = x,
+	dy = y,
 	angle = 0,
 	sx = 0.2,
 	sy = 0.2,
@@ -18,7 +20,7 @@ player = {
 	kx = 0,
 	ky = 0,
 	movement = vector.new_vector{0, 0},
-	speed = 1
+	speed = 5
 }
 
 camera = {
@@ -40,7 +42,7 @@ function noise()
 				map.collision[i+map.height*(j-1)] = 0
 			end
 
-			map.map[i+map.height*(j-1)] = math.random(#floorTextures)
+			map.floor[i+map.height*(j-1)] = math.random(#floorTextures)
 		end
 	end
 end
@@ -48,7 +50,7 @@ end
 function random()
 	for j = 1,map.width do
 		for i = 1,map.height do
-			map.map[i+map.height*(j-1)] 		= math.random(#floorTextures)
+			map.floor[i+map.height*(j-1)] 		= math.random(#floorTextures)
 			map.collision[i+map.height*(j-1)] 	= math.random(#collisionTextures)
 		end
 	end
@@ -103,10 +105,22 @@ function cameraSet()
 	camera.pseudoy = camera.y
 end
 
+function loadTextures(t, x, y)
+	for i, v in pairs(t) do
+		t[i] = love.graphics.newQuad(x*v[1], y*v[2], x, y, tiles:getDimensions())
+	end
+	return t
+end
 
 function love.load()
 	love.graphics.setDefaultFilter("nearest", "nearest")
 	playerTexture = love.graphics.newImage("assets/player.png")
+
+	prelude = love.audio.newSource("assets/01-prelude.mp3", "static")
+	love.audio.play(prelude)
+
+	floorTextures = loadTextures(floorTextures, 16, 16)
+	collisionTextures = loadTextures(collisionTextures, 16, 16)
 
 	player.ox = playerTexture:getPixelHeight()/2
 	player.oy = playerTexture:getPixelWidth()/2
@@ -230,7 +244,6 @@ function playerCollision(t)
 			if v[1] - ps/2 + cw + c[1]*scale < player.x and player.x < v[1] + ts + ps/2 - cw - (16-c[3])*scale
 				and v[2] - ps/2 + c[2]*scale < player.y and player.y < v[2] - ps/2 + cw + c[2]*scale
 				and t[2] <= 0 then
-					print(v[1] - ps/2 + cw + c[1]*2, player.x)
 				t[2] = 0
 			end
 			-- bottom
@@ -244,8 +257,12 @@ function playerCollision(t)
 	return t
 end
 
+local y = 0
+local x = 0
 function love.update(dt)
-	playerTrans = love.math.newTransform(player.x, player.y, player.angle, player.sx, player.sy, player.ox, player.oy, player.kx, player.ky)
+	y = os.clock()
+
+	playerTrans = love.math.newTransform(player.dx, player.dy, player.angle, player.sx, player.sy, player.ox, player.oy, player.kx, player.ky)
 
 	v = direction()
 
@@ -270,6 +287,13 @@ function love.update(dt)
 		player.y = player.y - v[2]
 	end
 
+	--print(player.x, math.floor(((player.x)-(player.x%(scale)))+0.5))	--player.x = math.floor((player.x-(player.x%(4*scale))))
+	--player.x = math.floor(((player.x)-(player.x%(scale)))+0.5)
+	player.dx = math.floor(player.x/5)*5
+	player.dy = math.floor(player.y/5)*5
+
+	--print(player.x, player.y)
+	--print(player.dx, player.dy)
 
 	if love.keyboard.isDown("w") then
 		noise()
@@ -280,53 +304,58 @@ function love.update(dt)
 	if love.keyboard.isDown("escape") or love.keyboard.isDown("q") then
 		love.event.quit()
 	end
+	--print(string.format("update():	%.4f\n", os.clock() - y))
 end
 
-function drawmap()
-	screenx = love.graphics.getWidth()
-	screeny = screenx
+function drawmap(cx, cy)
 	for j = 1,map.width do
 		for i = 1,map.height do
-			local c = map.map[i + (j-1)*map.height]
-			love.graphics.draw(testTiles, floorTextures[c], (j*map.texturesize - map.texturesize + camera.x)/scale, (i*map.texturesize - map.texturesize + camera.y)/scale)
+			local c = map.floor[i + (j-1)*map.height]
+			love.graphics.draw(tiles, floorTextures[c], (j*map.texturesize - map.texturesize + cx)/scale, (i*map.texturesize - map.texturesize + cy)/scale)
 		end
 	end
 end
 
-function drawcollision()
-	screenx = love.graphics.getWidth()
-	screeny = screenx
-	for j = 2,map.width-1 do
-		for i = 2,map.height-1 do
+function drawcollision(cx, cy)
+	for j = 1,map.width do
+		for i = 1,map.height do
 			local c = map.collision[i + (j-1)*map.height]
 			r = math.random(#floorTextures)
 			if c > 0 then
-				love.graphics.draw(testTiles, collisionTextures[c], (j*map.texturesize - map.texturesize + camera.x)/scale, (i*map.texturesize - map.texturesize + camera.y)/scale)
+				love.graphics.draw(tiles, collisionTextures[c], (j*map.texturesize - map.texturesize + cx)/scale, (i*map.texturesize - map.texturesize + cy)/scale)
 			end
 		end
 	end
 end
 
 function love.draw()
+	x = os.clock()
+
+	cx = math.floor(camera.x/5)*5
+	cy = math.floor(camera.y/5)*5
+	scale = map.texturesize/16
 
 	love.graphics.push()
-	scale = map.texturesize/16
 	love.graphics.scale(scale, scale)
-	drawmap()
-	drawcollision()
+	drawmap(cx, cy)
 	love.graphics.pop()
 
 	love.graphics.draw(playerTexture, playerTrans)
+
 	love.graphics.push()
-	scale = map.texturesize/16
 	love.graphics.scale(scale, scale)
+	drawcollision(cx, cy)
+	love.graphics.pop()
+
 	for _, v in pairs(collidables) do
 		if v[2] ~= nil and v[4] ~= nil then
-			--local c = math.floor(1 * map.map[i + (j-1)*map.height] + 0.2)
-			love.graphics.draw(testTiles, collisionTextures[v[4]], v[1]/scale, v[2]/scale)
+			--local c = math.floor(1 * map.floor[i + (j-1)*map.height] + 0.2)
+			--love.graphics.draw(tiles, collisionTextures[v[4]], v[1]/scale, v[2]/scale)
 			--love.graphics.rectangle("fill", v[1]/scale, v[2]/scale, map.texturesize, map.texturesize)
 		end
 	end
-	love.graphics.pop()
+	--print(string.format("draw():		%.4f\n", os.clock() - x))
+	--print(string.format("total:		%.4f\n", os.clock() - y))
+	print(string.format("fps:		%.0f\n", 1/(os.clock() - y)))
 end
 

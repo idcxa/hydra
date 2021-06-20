@@ -1,26 +1,27 @@
 love.graphics.setDefaultFilter("nearest", "nearest")
-testTiles = love.graphics.newImage("assets/testtiles-1.png")
+
+tiles = love.graphics.newImage("assets/testtiles-1.png")
 
 floorTextures = {
-	love.graphics.newQuad(16*1, 16*3, 16, 16, testTiles:getDimensions()),
-	love.graphics.newQuad(16*2, 16*3, 16, 16, testTiles:getDimensions()),
-	love.graphics.newQuad(16*3, 16*3, 16, 16, testTiles:getDimensions()),
-	love.graphics.newQuad(16*4, 16*3, 16, 16, testTiles:getDimensions()),
+	{1, 3},
+	{2, 3},
+	{3, 3},
+	{4, 3}
 }
 
 collisionTextures = {
-	love.graphics.newQuad(0, 16*7, 16, 16, testTiles:getDimensions()),
-	love.graphics.newQuad(0, 16*6, 16, 16, testTiles:getDimensions())
+	{0,7},
+	{0,6}
 }
 
 collidables = {}
 
 firstmap = {
-width = 20,
-height = 30,
+width = 50,
+height = 6,
 texturesize = 80,
 pixelsize = 16,
-map = {},
+floor = {},
 collision = {}
 }
 
