@@ -184,11 +184,6 @@ function loadCollision()
 			end
 		end
 	end
-	--collidables = {}
-	--table.insert(collidables, {map.texturesize*10 + camera.x, map.texturesize*15 + camera.y})
-	--table.insert(collidables, {map.texturesize*5 + camera.x, map.texturesize*15 + camera.y})
-	--table.insert(collidables, {map.texturesize*12 + camera.x, map.texturesize*15 + camera.y})
-	--table.insert(collidables, {700,200})
 end
 
 function playerCollision(t)
@@ -287,13 +282,8 @@ function love.update(dt)
 		player.y = player.y - v[2]
 	end
 
-	--print(player.x, math.floor(((player.x)-(player.x%(scale)))+0.5))	--player.x = math.floor((player.x-(player.x%(4*scale))))
-	--player.x = math.floor(((player.x)-(player.x%(scale)))+0.5)
 	player.dx = math.floor(player.x/5)*5
 	player.dy = math.floor(player.y/5)*5
-
-	--print(player.x, player.y)
-	--print(player.dx, player.dy)
 
 	if love.keyboard.isDown("w") then
 		noise()
@@ -304,7 +294,6 @@ function love.update(dt)
 	if love.keyboard.isDown("escape") or love.keyboard.isDown("q") then
 		love.event.quit()
 	end
-	--print(string.format("update():	%.4f\n", os.clock() - y))
 end
 
 function drawmap(cx, cy)
@@ -340,6 +329,7 @@ function love.draw()
 	drawmap(cx, cy)
 	love.graphics.pop()
 
+	-- need 16x16 player texture!
 	love.graphics.draw(playerTexture, playerTrans)
 
 	love.graphics.push()
@@ -347,15 +337,6 @@ function love.draw()
 	drawcollision(cx, cy)
 	love.graphics.pop()
 
-	for _, v in pairs(collidables) do
-		if v[2] ~= nil and v[4] ~= nil then
-			--local c = math.floor(1 * map.floor[i + (j-1)*map.height] + 0.2)
-			--love.graphics.draw(tiles, collisionTextures[v[4]], v[1]/scale, v[2]/scale)
-			--love.graphics.rectangle("fill", v[1]/scale, v[2]/scale, map.texturesize, map.texturesize)
-		end
-	end
-	--print(string.format("draw():		%.4f\n", os.clock() - x))
-	--print(string.format("total:		%.4f\n", os.clock() - y))
 	print(string.format("fps:		%.0f\n", 1/(os.clock() - y)))
 end
 
