@@ -20,7 +20,9 @@ player = {
 	kx = 0,
 	ky = 0,
 	movement = vector.new_vector{0, 0},
-	speed = 5
+	speed = 5,
+	dead = false,
+	win = false
 }
 
 camera = {
@@ -35,7 +37,7 @@ function noise()
 	for j = 1,map.width do
 		for i = 1,map.height do
 			map.collision[i+map.height*(j-1)] = love.math.noise(i+love.math.random(),j+love.math.random())
-			local c = math.floor(1 * map.collision[i + (j-1)*map.height] + 0.2)
+			local c = math.floor(1 * map.collision[i + (j-1)*map.height] + 0.3)
 			if c > 0 then
 				map.collision[i+map.height*(j-1)] = math.random(#collisionTextures)
 			else
@@ -59,28 +61,28 @@ end
 function direction()
 	movement = {0,0}
 	angle = player.speed*math.sin(45)
-	if love.keyboard.isDown("up") then
+	if love.keyboard.isDown("w") then
 		movement[2] = player.speed
-	elseif love.keyboard.isDown("down")  then
+	elseif love.keyboard.isDown("s") then
 		movement[2] = -player.speed
 	end
-	if love.keyboard.isDown("left") then
+	if love.keyboard.isDown("a") then
 		movement[1] = player.speed
-		if love.keyboard.isDown("up") then
+		if love.keyboard.isDown("w") then
 			movement[1] = angle
 			movement[2] = angle
 		end
-		if love.keyboard.isDown("down") then
+		if love.keyboard.isDown("s") then
 			movement[1] = angle
 			movement[2] = -angle
 		end
-	elseif love.keyboard.isDown("right")  then
+	elseif love.keyboard.isDown("d") then
 		movement[1] = -player.speed
-		if love.keyboard.isDown("up") then
+		if love.keyboard.isDown("w") then
 			movement[1] = -angle
 			movement[2] = angle
 		end
-		if love.keyboard.isDown("down") then
+		if love.keyboard.isDown("s") then
 			movement[1] = -angle
 			movement[2] = -angle
 		end
@@ -200,11 +202,13 @@ function playerCollision(t)
 	if player.x < ps/2 - player.speed/2 then
 		player.x = ps/2
 		camera.pseudox = love.graphics.getWidth()/2
+		player.lose = true
 	end
 	-- right
 	if player.x > map.width * ts - ts/2 + camera.x + player.speed/2 then
 		player.x = map.width * ts - ts/2 + camera.x
 		camera.pseudox = -map.texturesize*map.width + love.graphics.getWidth()/2
+		player.win = true
 	end
 	-- top
 	if player.y < ts/2 - player.speed/2 then
@@ -222,7 +226,6 @@ function playerCollision(t)
 	for _, v in pairs(collidables) do
 		if v[2] ~= nil then
 			c = v[3]
-
 			-- left
 			if v[2] - ps/2 + cw + c[2]*scale < player.y and player.y < v[2] + ts + ps/2 - cw
 				and v[1] - ps/2 + c[1]*scale < player.x and player.x < v[1] - ps/2 + cw + c[1]*scale
@@ -252,6 +255,9 @@ function playerCollision(t)
 	return t
 end
 
+function destruction()
+end
+
 local y = 0
 local x = 0
 function love.update(dt)
@@ -268,14 +274,12 @@ function love.update(dt)
 	camModey = 1
 	cameraCollision()
 
-	camera.pseudox = camera.pseudox + v[1]
+	camera.pseudox = camera.pseudox - player.speed/2
 	camera.pseudoy = camera.pseudoy + v[2]
 
-	if camModex == 1 then
-		camera.x = camera.pseudox
-	else
-		player.x = player.x - v[1]
-	end
+	camera.x = camera.pseudox
+	player.x = player.x - v[1] - player.speed/2
+
 	if camModey == 1 then
 		camera.y = camera.pseudoy
 	else
@@ -285,11 +289,11 @@ function love.update(dt)
 	player.dx = math.floor(player.x/5)*5
 	player.dy = math.floor(player.y/5)*5
 
-	if love.keyboard.isDown("w") then
-		noise()
-	end
 	if love.keyboard.isDown("e") then
-		random()
+		destruction()
+	end
+	if love.keyboard.isDown("space") then
+		noise()
 	end
 	if love.keyboard.isDown("escape") or love.keyboard.isDown("q") then
 		love.event.quit()
@@ -317,7 +321,25 @@ function drawcollision(cx, cy)
 	end
 end
 
+function winlose()
+	if player.lose == true then
+		love.graphics.setColor(0, 0, 0, 1)
+	else
+		love.graphics.setColor(1, 1, 1, 1)
+	end
+	love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
+	love.audio.pause(prelude)
+	if player.lose == true then
+	love.graphics.setColor(1, 1, 1, 1)
+		love.graphics.print("You lose", love.graphics.getWidth()/2, love.graphics.getHeight()/2, 0, 3, 3)
+	else
+	love.graphics.setColor(0, 0, 0, 1)
+		love.graphics.print("You win!!", love.graphics.getWidth()/2, love.graphics.getHeight()/2, 0, 3, 3)
+	end
+end
+
 function love.draw()
+	love.graphics.clear()
 	x = os.clock()
 
 	cx = math.floor(camera.x/5)*5
@@ -336,6 +358,10 @@ function love.draw()
 	love.graphics.scale(scale, scale)
 	drawcollision(cx, cy)
 	love.graphics.pop()
+
+	if player.lose == true or player.win == true then
+		winlose()
+	end
 
 	print(string.format("fps:		%.0f\n", 1/(os.clock() - y)))
 end
