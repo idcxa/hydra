@@ -37,7 +37,7 @@ function noise()
 	for j = 1,map.width do
 		for i = 1,map.height do
 			map.collision[i+map.height*(j-1)] = love.math.noise(i+love.math.random(),j+love.math.random())
-			local c = math.floor(1 * map.collision[i + (j-1)*map.height] + 0.3)
+			local c = math.floor(1 * map.collision[i + (j-1)*map.height] + 0.1)
 			if c > 0 then
 				map.collision[i+map.height*(j-1)] = math.random(#collisionTextures)
 			else
@@ -256,6 +256,46 @@ function playerCollision(t)
 end
 
 function destruction()
+	for j = 1,map.width do
+		for i = 1,map.height do
+			local c = j*map.texturesize - map.texturesize + camera.x
+			local d = i*map.texturesize - map.texturesize + camera.y
+			if c > player.x and player.x > c - map.texturesize/2
+				and player.y - map.texturesize < d and d < player.y
+				and map.collision[i + (j-1)*map.height] > 0 then
+				print("right:	", map.collision[i + (j-1)*map.height])
+				if love.keyboard.isDown("right") then
+					map.collision[i + (j-1)*map.height] = 0
+					map.collision[i + j*map.height] = math.random(#collisionTextures)
+				end
+			end
+			if c < player.x and player.x < c + map.texturesize + map.texturesize*0.4
+				and player.y - map.texturesize < d and d < player.y
+				and map.collision[i + (j-1)*map.height] > 0 then
+				print("left:	", map.collision[i + (j-1)*map.height])
+				if love.keyboard.isDown("left") then
+					map.collision[i + (j-1)*map.height] = 0
+					map.collision[i + (j-2)*map.height] = math.random(#collisionTextures)
+				end
+			end
+			if d > player.y and player.y > d - map.texturesize*0.4
+				and c < player.x and player.x < c + map.texturesize
+				and map.collision[i + (j-1)*map.height] > 0 then
+				if love.keyboard.isDown("down") then
+					map.collision[i + (j-1)*map.height] = 0
+					map.collision[i+1 + (j-1)*map.height] = math.random(#collisionTextures)
+				end
+			end
+			if d + map.texturesize + 40 > player.y and player.y > d + map.texturesize - map.texturesize*0.4
+				and c < player.x and player.x < c + map.texturesize
+				and map.collision[i + (j-1)*map.height] > 0 then
+				if love.keyboard.isDown("up") then
+					map.collision[i + (j-1)*map.height] = 0
+					map.collision[i-1 + (j-1)*map.height] = math.random(#collisionTextures)
+				end
+			end
+		end
+	end
 end
 
 local y = 0
@@ -274,11 +314,12 @@ function love.update(dt)
 	camModey = 1
 	cameraCollision()
 
-	camera.pseudox = camera.pseudox - player.speed/2
+	camSpeed = 0
+	camera.pseudox = camera.pseudox - camSpeed
 	camera.pseudoy = camera.pseudoy + v[2]
 
 	camera.x = camera.pseudox
-	player.x = player.x - v[1] - player.speed/2
+	player.x = player.x - v[1] - camSpeed
 
 	if camModey == 1 then
 		camera.y = camera.pseudoy
@@ -289,11 +330,14 @@ function love.update(dt)
 	player.dx = math.floor(player.x/5)*5
 	player.dy = math.floor(player.y/5)*5
 
+	destruction()
+
 	if love.keyboard.isDown("e") then
 		destruction()
 	end
 	if love.keyboard.isDown("space") then
 		noise()
+		destruction()
 	end
 	if love.keyboard.isDown("escape") or love.keyboard.isDown("q") then
 		love.event.quit()
@@ -363,6 +407,6 @@ function love.draw()
 		winlose()
 	end
 
-	print(string.format("fps:		%.0f\n", 1/(os.clock() - y)))
+	--print(string.format("fps:		%.0f\n", 1/(os.clock() - y)))
 end
 
