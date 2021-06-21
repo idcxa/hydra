@@ -26,8 +26,8 @@ collisionBoxes = {
 collidables = {}
 
 firstmap = {
-	width = 50,
-	height = 6,
+	width = 16,
+	height = 9,
 	texturesize = 80,
 	pixelsize = 16,
 	floor = {},

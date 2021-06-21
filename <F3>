@@ -12,7 +12,7 @@ function Map:new(file, width, height, x, pixelsize, layers)
 		height = height,
 		texturesize = x,
 		pixelsize = pixelsize,
-		layers = {}
+		layers = layers
 	}
 	setmetatable(t, self)
 	return t
@@ -21,7 +21,7 @@ end
 -- table of positions, x in pixels, y in pixels, layer group
 function Map:loadTextures(t, x, y, layers)
 	for k, v in pairs(t) do
-		t[k] = love.graphics.newQuad(v[1], v[2], x, y, self.tiles:getDimensions())
+		t[k] = love.graphics.newQuad(x*v[1], y*v[2], x, y, self.tiles:getDimensions())
 	end
 	self.layers[layers].textures = t
 	return self
@@ -47,9 +47,7 @@ end
 function Map:load(filename)
 	file = io.open(filename, "r")
 	self.layers = {}
-	self.layers[1] = {}
-	self.layers[2] = {}
-	layer = 0
+	local layer
 	local mode
 	for line in file:lines() do
 		temp = {}
@@ -61,21 +59,20 @@ function Map:load(filename)
 			self.tiles = love.graphics.newImage(temp[2])
 		end
 		if temp[1] == "w" then
-			self.width = tonumber(temp[2])
+			self.width = temp[2]
 		end
 		if temp[1] == "h" then
-			self.height = tonumber(temp[2])
+			self.height = temp[2]
 		end
 		if temp[1] == "ps" then
-			self.pixelsize = tonumber(temp[2])
+			self.pixelsize = temp[2]
 		end
 		if temp[1] == "l" then
-			layer = tonumber(temp[2])
+			layer = temp[2]
+			self.layers[layer] = {}
 			self.layers[layer].textures = {}
 			self.layers[layer].map = {}
-			mode = nil
 		end
-
 		if temp[1] == "textures" then
 			mode = temp[1]
 		end
@@ -85,18 +82,15 @@ function Map:load(filename)
 		if temp[1] == "map" then
 			mode = temp[1]
 		end
-
 		if mode == "textures" and temp[1] ~= "textures" then
+			print(temp[1])
 			table.insert(self.layers[layer].textures, temp)
 		end
 		if mode == "map" and temp[1] ~= "map" then
-			self.layers[layer].map = {}
-			for _, v in pairs(temp) do
-				table.insert(self.layers[layer].map, tonumber(v))
-			end
+			for _, v in pairs(temp) do print(v) end
+			table.insert(self.layers[layer].map, temp)
 		end
 	end
-	return self
 end
 
 function Map:save(filename)
