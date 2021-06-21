@@ -1,6 +1,6 @@
 love.graphics.setDefaultFilter("nearest", "nearest")
-require "map"
-hybrid = require "init"
+require("map")
+hybrid = require("hydra")
 
 -- display
 function noise(map)
@@ -54,9 +54,7 @@ function direction()
 	return movement
 end
 
-local playerTrans
 function love.load()
-	love.graphics.setDefaultFilter("nearest", "nearest")
 
 	prelude = love.audio.newSource("assets/01-prelude.mp3", "static")
 	--love.audio.play(prelude)

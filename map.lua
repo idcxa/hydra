@@ -1,4 +1,3 @@
-
 tiles = love.graphics.newImage("assets/testtiles-1.png")
 
 floorTextures = {
