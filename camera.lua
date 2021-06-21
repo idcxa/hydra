@@ -7,7 +7,7 @@ function Camera:new()
 	return t
 end
 
-function Camera:setCamera(player)
+function Camera:set(player, map)
 	if player.x > love.graphics.getWidth()/2 then
 		self.x = -player.x + love.graphics.getWidth()/2
 		self.pseudox = self.x
