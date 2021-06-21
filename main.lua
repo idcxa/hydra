@@ -1,35 +1,9 @@
-require "data"
 require "map"
-
-local playerTrans
-
-local vector = Vector()
+hybrid = require "init"
 
 map = firstmap
 
-player = {
-	x = love.graphics.getWidth()/2,
-	y = love.graphics.getHeight()/2,
-	dx = x,
-	dy = y,
-	angle = 0,
-	sx = 0.2,
-	sy = 0.2,
-	ox = 0.5,
-	oy = 0.5,
-	kx = 0,
-	ky = 0,
-	movement = vector.new_vector{0, 0},
-	speed = 5
-}
-
-camera = {
-	x = -love.graphics.getWidth(),
-	y = -love.graphics.getHeight(),
-	movement = vector.new_vector{0, 0},
-	pseudox = -love.graphics.getWidth(),
-	pseudoy = -love.graphics.getHeight()
-}
+scale = map.texturesize/map.pixelsize
 
 function noise()
 	for j = 1,map.width do
@@ -43,15 +17,6 @@ function noise()
 			end
 
 			map.floor[i+map.height*(j-1)] = math.random(#floorTextures)
-		end
-	end
-end
-
-function random()
-	for j = 1,map.width do
-		for i = 1,map.height do
-			map.floor[i+map.height*(j-1)] 		= math.random(#floorTextures)
-			map.collision[i+map.height*(j-1)] 	= math.random(#collisionTextures)
 		end
 	end
 end
@@ -88,23 +53,6 @@ function direction()
 	return movement
 end
 
-function cameraSet()
-	if camera.x > 0 then
-		camera.x = 0
-	end
-	if camera.x < -mapwx then
-		camera.x = -mapwx
-	end
-	if camera.y > 0 then
-		camera.y = 0
-	end
-	if camera.y < -mapwy then
-		camera.y = -mapwy
-	end
-	camera.pseudox = camera.x
-	camera.pseudoy = camera.y
-end
-
 function loadTextures(t, x, y)
 	for i, v in pairs(t) do
 		t[i] = love.graphics.newQuad(x*v[1], y*v[2], x, y, tiles:getDimensions())
@@ -112,6 +60,7 @@ function loadTextures(t, x, y)
 	return t
 end
 
+local playerTrans
 function love.load()
 	love.graphics.setDefaultFilter("nearest", "nearest")
 	playerTexture = love.graphics.newImage("assets/player.png")
@@ -122,12 +71,16 @@ function love.load()
 	floorTextures = loadTextures(floorTextures, 16, 16)
 	collisionTextures = loadTextures(collisionTextures, 16, 16)
 
+	camera = hybrid.newCamera()
+	player = hybrid.newPlayer()
+
 	player.ox = playerTexture:getPixelHeight()/2
 	player.oy = playerTexture:getPixelWidth()/2
 	player.sx = map.texturesize * 0.8 / playerTexture:getPixelHeight()
 	player.sy = map.texturesize * 0.8 / playerTexture:getPixelWidth()
+
+	camera:setCamera(player)
 	noise()
-	cameraSet()
 end
 
 mapwx = map.width * map.texturesize - love.graphics.getWidth()
@@ -141,24 +94,6 @@ mapwy = map.height * map.texturesize - love.graphics.getHeight()
 4. psuedo camera comes away from border [enter state 1]
 5. camera follows pseudo camera			[state 1]
 ]]--
-
-camModex = 1
-camModey = 1
-
-function cameraCollision()
-	if camera.pseudox > 0 then
-		camModex = 2
-	end
-	if camera.pseudox < -mapwx then
-		camModex = 2
-	end
-	if camera.pseudoy > 0 then
-		camModey = 2
-	end
-	if camera.pseudoy < -mapwy then
-		camModey = 2
-	end
-end
 
 function loadCollision()
 	collidables = {}
@@ -222,7 +157,6 @@ function playerCollision(t)
 	for _, v in pairs(collidables) do
 		if v[2] ~= nil then
 			c = v[3]
-
 			-- left
 			if v[2] - ps/2 + cw + c[2]*scale < player.y and player.y < v[2] + ts + ps/2 - cw
 				and v[1] - ps/2 + c[1]*scale < player.x and player.x < v[1] - ps/2 + cw + c[1]*scale
@@ -256,6 +190,7 @@ local y = 0
 local x = 0
 function love.update(dt)
 	y = os.clock()
+	--print(player.x, camera.x, camera.pseudox)
 
 	playerTrans = love.math.newTransform(player.dx, player.dy, player.angle, player.sx, player.sy, player.ox, player.oy, player.kx, player.ky)
 
@@ -264,39 +199,19 @@ function love.update(dt)
 	loadCollision()
 	v = playerCollision(v)
 
-	camModex = 1
-	camModey = 1
-	cameraCollision()
+	camera:movement(player, v)
 
-	camera.pseudox = camera.pseudox + v[1]
-	camera.pseudoy = camera.pseudoy + v[2]
+	player.dx = math.floor(player.x/scale)*scale
+	player.dy = math.floor(player.y/scale)*scale
 
-	if camModex == 1 then
-		camera.x = camera.pseudox
-	else
-		player.x = player.x - v[1]
-	end
-	if camModey == 1 then
-		camera.y = camera.pseudoy
-	else
-		player.y = player.y - v[2]
-	end
-
-	player.dx = math.floor(player.x/5)*5
-	player.dy = math.floor(player.y/5)*5
-
-	if love.keyboard.isDown("w") then
-		noise()
-	end
-	if love.keyboard.isDown("e") then
-		random()
-	end
 	if love.keyboard.isDown("escape") or love.keyboard.isDown("q") then
 		love.event.quit()
 	end
+
+	--print(player.x, camera.x, camera.pseudox)
 end
 
-function drawmap(cx, cy)
+function drawFloor(cx, cy)
 	for j = 1,map.width do
 		for i = 1,map.height do
 			local c = map.floor[i + (j-1)*map.height]
@@ -305,7 +220,7 @@ function drawmap(cx, cy)
 	end
 end
 
-function drawcollision(cx, cy)
+function drawCollision(cx, cy)
 	for j = 1,map.width do
 		for i = 1,map.height do
 			local c = map.collision[i + (j-1)*map.height]
@@ -320,13 +235,13 @@ end
 function love.draw()
 	x = os.clock()
 
-	cx = math.floor(camera.x/5)*5
-	cy = math.floor(camera.y/5)*5
+	cx = math.floor(camera.x/scale)*scale
+	cy = math.floor(camera.y/scale)*scale
 	scale = map.texturesize/16
 
 	love.graphics.push()
 	love.graphics.scale(scale, scale)
-	drawmap(cx, cy)
+	drawFloor(cx, cy)
 	love.graphics.pop()
 
 	-- need 16x16 player texture!
@@ -334,9 +249,9 @@ function love.draw()
 
 	love.graphics.push()
 	love.graphics.scale(scale, scale)
-	drawcollision(cx, cy)
+	drawCollision(cx, cy)
 	love.graphics.pop()
 
-	print(string.format("fps:		%.0f\n", 1/(os.clock() - y)))
+	--print(string.format("fps:		%.0f\n", 1/(os.clock() - y)))
 end
 
