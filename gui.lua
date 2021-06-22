@@ -46,11 +46,11 @@ function Gui:selection(mx, my, scale, map)
 	if love.keyboard.isDown("3") then
 		self.layer = 3
 	end
+	if love.keyboard.isDown("0") then
+		return nil
+	end
 
-	local c = 0
 	self.quad = love.graphics.newQuad(16*self.select[1], 16*self.select[2], 16, 16, map.tiles:getDimensions())
-
-
 end
 
 function Gui:draw(scale)

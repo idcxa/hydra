@@ -60,9 +60,16 @@ end
 function Map:load(filename)
 	file = io.open(filename, "r")
 	if file == nil then
-		self.width = math.random(10)+10
-		self.height = math.random(10)+10
-		self.pixelsize = 16
+		-- defaults
+		if self.width == nil then
+			self.width = math.random(20)
+		end
+		if self.height == nil then
+			self.height = math.random(10)
+		end
+		if self.pixelsize == nil then
+			self.pixelsize = 16
+		end
 		self:newLayer()
 		self.layers[1].textures = {{16,3*16},{16,4*16}}
 		self:newLayer()
@@ -184,7 +191,7 @@ function Map:draw(cx, cy, layer)
 		for i = 1,map.height do
 			local c = map.layers[layer].map[i + (j-1)*map.height]
 			if c > 0 and self.layers[layer].textures[c] ~= nil then
-				love.graphics.draw(tiles, self.layers[layer].textures[c], (j*map.texturesize - map.texturesize + cx)/scale, (i*map.texturesize - map.texturesize + cy)/scale)
+				love.graphics.draw(self.tiles, self.layers[layer].textures[c], (j*map.texturesize - map.texturesize + cx)/scale, (i*map.texturesize - map.texturesize + cy)/scale)
 			end
 		end
 	end

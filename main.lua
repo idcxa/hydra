@@ -1,5 +1,4 @@
 love.graphics.setDefaultFilter("nearest", "nearest")
-require("map")
 hybrid = require("hydra")
 
 -- display
@@ -57,7 +56,7 @@ end
 function love.load()
 
 	prelude = love.audio.newSource("assets/01-prelude.mp3", "static")
-	--love.audio.play(prelude)
+	love.audio.play(prelude)
 
 	--floorTextures = loadTextures(floorTextures, 16, 16)
 	--collisionTextures = loadTextures(collisionTextures, 16, 16)
@@ -65,7 +64,7 @@ function love.load()
 	camera = hybrid.newCamera()
 	player = hybrid.newPlayer("assets/player.png")
 	--map    = hybrid.newMap("assets/testtiles-1.png", 16, 9, 80, 16)
-	map = hybrid.newMap("assets/testtiles-1.png")
+	map = hybrid.newMap("assets/testtiles-1.png", 10, 10, 80, 16)
 	textures = hybrid.newElement("assets/testtiles-1.png", love.graphics.getWidth()*0.75, 0, love.graphics.getWidth()*0.25, height)
 
 	map:load("test.txt")
@@ -81,7 +80,7 @@ function love.load()
 
 	map:loadTextures(map.layers[1].textures, 16, 16, 1)
 	map:loadTextures(map.layers[2].textures, 16, 16, 2)
-	map:loadCollisionBoxes(collisionBoxes, 2)
+	--map:loadCollisionBoxes(collisionBoxes, 2)
 
 
 	player.ox = player.texture:getPixelHeight()/2
@@ -92,18 +91,6 @@ function love.load()
 	camera:set(player, map)
 	--noise(map)
 end
-
-
---[[
-1. camera follows psuedo camera 		[state 1]
-2. camera hits border 					[enter state 2]
-3. camera stops following pseudo camera	[state 2]
-   and player starts moving
-4. psuedo camera comes away from border [enter state 1]
-5. camera follows pseudo camera			[state 1]
-]]--
-
---local c = math.floor(1 * map.layers[2].map[i + (j-1)*map.height] + 0.2)
 
 function love.wheelmoved(dx, dy)
 	map.texturesize = map.texturesize + dy
@@ -164,21 +151,12 @@ function love.update(dt)
 		map:save("test.txt")
 		love.event.quit()
 	end
+	if love.keyboard.isDown("f") then
+		love.window.setFullscreen(true, "desktop")
+	end
 	if love.keyboard.isDown("escape") or love.keyboard.isDown("q") then
 		love.event.quit()
 	end
-end
-
-function drawgui(x)
-	love.graphics.setColor(1, 1, 1, 1)
-	love.graphics.rectangle("line", x, 0, love.graphics.getWidth()-x, love.graphics.getHeight())
-	love.graphics.setColor(0, 0, 0, 1)
-	love.graphics.rectangle("fill", x, 0, love.graphics.getWidth()-x, love.graphics.getHeight())
-	love.graphics.setColor(1, 1, 1, 1)
-	love.graphics.push()
-	love.graphics.scale(scale, scale)
-	love.graphics.draw(map.tiles, x/scale, 0)
-	love.graphics.pop()
 end
 
 function love.draw()
@@ -193,7 +171,7 @@ function love.draw()
 	map:draw(cx, cy, 1)
 	love.graphics.pop()
 
-	--player:draw()
+	--`player:draw()
 
 	love.graphics.push()
 	love.graphics.scale(scale, scale)
@@ -201,9 +179,6 @@ function love.draw()
 
 	textures:draw(scale)
 	love.graphics.pop()
-
-	--drawgui(border)
-
 
 	--print(string.format("fps:		%.0f\n", 1/(os.clock() - y)))
 end
