@@ -11,12 +11,12 @@ function noise(map)
 			map.layers[2].map[i+map.height*(j-1)] = love.math.noise(i+love.math.random(),j+love.math.random())
 			local c = math.floor(1 * map.layers[2].map[i + (j-1)*map.height] + 0.2)
 			if c > 0 then
-				map.layers[2].map[i+map.height*(j-1)] = math.random(#collisionTextures)
+				map.layers[2].map[i+map.height*(j-1)] = math.random(#map.layers[2].textures)
 			else
 				map.layers[2].map[i+map.height*(j-1)] = c
 			end
 
-			map.layers[1].map[i+map.height*(j-1)] = math.random(#floorTextures)
+			map.layers[1].map[i+map.height*(j-1)] = math.random(#map.layers[1].textures)
 		end
 	end
 	return map

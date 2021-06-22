@@ -46,6 +46,18 @@ end
 
 function Map:load(filename)
 	file = io.open(filename, "r")
+	if file == nil then
+		self.width = math.random(10)+10
+		self.height = math.random(10)+10
+		self.pixelsize = 16
+		self:newLayer()
+		self.layers[1].textures = {{16,3*16},{16,4*16}}
+		self:newLayer()
+		self.layers[2].textures = {{0,7*16}}
+		noise(self)
+		return
+	end
+
 	self.layers = {}
 	self.layers[1] = {}
 	self.layers[2] = {}
@@ -56,40 +68,35 @@ function Map:load(filename)
 		for str in string.gmatch(line, "([^".."%s".."]+)") do
 			table.insert(temp, str)
 		end
-		if temp[1] == "f" then
+		local t = temp[1]
+		if t == "f" then
 			self.file = temp[2]
 			self.tiles = love.graphics.newImage(temp[2])
 		end
-		if temp[1] == "w" then
+		if t == "w" then
 			self.width = tonumber(temp[2])
 		end
-		if temp[1] == "h" then
+		if t == "h" then
 			self.height = tonumber(temp[2])
 		end
-		if temp[1] == "ps" then
+		if t == "ps" then
 			self.pixelsize = tonumber(temp[2])
 		end
-		if temp[1] == "l" then
+		if t == "l" then
 			layer = tonumber(temp[2])
 			self.layers[layer].textures = {}
 			self.layers[layer].map = {}
 			mode = nil
 		end
 
-		if temp[1] == "textures" then
-			mode = temp[1]
-		end
-		if temp[1] == "collision" then
-			mode = temp[1]
-		end
-		if temp[1] == "map" then
-			mode = temp[1]
+		if t == "textures" or t == "collision" or t == "map" then
+			mode = t
 		end
 
-		if mode == "textures" and temp[1] ~= "textures" then
+		if mode == "textures" and t ~= "textures" then
 			table.insert(self.layers[layer].textures, temp)
 		end
-		if mode == "map" and temp[1] ~= "map" then
+		if mode == "map" and t ~= "map" then
 			self.layers[layer].map = {}
 			for _, v in pairs(temp) do
 				table.insert(self.layers[layer].map, tonumber(v))
@@ -163,7 +170,7 @@ function Map:draw(cx, cy, layer)
 	for j = 1,map.width do
 		for i = 1,map.height do
 			local c = map.layers[layer].map[i + (j-1)*map.height]
-			if c > 0 then
+			if c > 0 and self.layers[layer].textures[c] ~= nil then
 				love.graphics.draw(tiles, self.layers[layer].textures[c], (j*map.texturesize - map.texturesize + cx)/scale, (i*map.texturesize - map.texturesize + cy)/scale)
 			end
 		end

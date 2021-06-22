@@ -67,7 +67,7 @@ function Gui:selection(mx, my, scale, map)
 end
 
 function Gui:draw(scale)
-	love.graphics.draw(map.tiles, self.quad, 0, 0)
+	--love.graphics.draw(map.tiles, self.quad, , 0)
 	self.width = love.graphics.getWidth() - self.x
 	love.graphics.setColor(1, 1, 1, 1)
 	love.graphics.rectangle("line", self.x/scale, 0, self.width, love.graphics.getHeight())
