@@ -40,7 +40,20 @@ function Map:newLayer(t)
 	return self
 end
 
-function Map:set(x, y, l, c)
+function Map:set(x, y, l, quad)
+	none = true
+	for k, v in pairs(map.layers[l].textures) do
+		x1, y1 = v:getViewport()
+		x2, y2 = quad:getViewport()
+		if x1 == x2 and y1 == y2 then
+			c = k
+			none = false
+		end
+	end
+	if none == true then
+		table.insert(self.layers[l].textures, quad)
+		c = #self.layers[l].textures
+	end
 	self.layers[l].map[y + (x-1)*self.height] = c
 end
 

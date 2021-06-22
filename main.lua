@@ -137,15 +137,19 @@ function love.update(dt)
 		camera.y = camera.y - 10
 	end
 
+	-- move the window
 	textures:move(mx, my)
 
-	c = textures:selection(mx, my, scale, map)
+	-- select a texture based on the position of the mouse
+	-- sets self.quad to the selection and self.layer to the layer selected
+	textures:selection(mx, my, scale, map)
 
 	if love.mouse.isDown(1) and mx < textures.x then
 		local s = map.texturesize
 		local x = (mx - camera.x - (mx-camera.x)%s)/s + 1
 		local y = (my - camera.y - (my-camera.y)%s)/s + 1
-		map:set(x, y, textures.layer, c)
+
+		map:set(x, y, textures.layer, textures.quad)
 	end
 
 

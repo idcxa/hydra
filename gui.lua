@@ -49,21 +49,8 @@ function Gui:selection(mx, my, scale, map)
 
 	local c = 0
 	self.quad = love.graphics.newQuad(16*self.select[1], 16*self.select[2], 16, 16, map.tiles:getDimensions())
-	none = true
-	for k, v in pairs(map.layers[self.layer].textures) do
-		x1, y1 = v:getViewport()
-		x2, y2 = self.quad:getViewport()
-		if x1 == x2 and y1 == y2 then
-			c = k
-			none = false
-		end
-	end
-	if none == true then
-		table.insert(map.layers[self.layer].textures, self.quad)
-		c = #map.layers[self.layer].textures
-	end
 
-	return c
+
 end
 
 function Gui:draw(scale)
