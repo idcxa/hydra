@@ -101,22 +101,24 @@ end
 local y = 0
 local x = 0
 
+a = coroutine.create(function()
+	i = 1
+	while(true) do
+		if i > 5 then i = 1 end
+
+		print(i)
+		i = i + 1
+		coroutine.yield()
+	end
+end)
+
+for i = 1,15 do
+	coroutine.resume(a)
+end
+
 function love.update(dt)
 	y = os.clock()
 
-	a = coroutine.create(function()
-		i = 1
-		while(true) do
-			if i > 5 then i = 1 end
-			print(i)
-			i = i + 1
-			coroutine.yield()
-		end
-	end)
-
-	for i = 1,15 do
-		coroutine.resume(a)
-	end
 	--v = direction()
 
 	--map:loadCollision(camera, 2)
@@ -191,7 +193,7 @@ function love.draw()
 
 	love.graphics.push()
 	love.graphics.scale(scale, scale)
-	--anim:draw()
+	anim:draw()
 	map:draw(cx, cy, 2)
 
 	textures:draw(scale)
