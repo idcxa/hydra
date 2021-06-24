@@ -1,5 +1,6 @@
 love.graphics.setDefaultFilter("nearest", "nearest")
 hybrid = require("hydra")
+--anim = require("animation")
 
 -- display
 function noise(map)
