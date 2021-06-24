@@ -1,6 +1,5 @@
 love.graphics.setDefaultFilter("nearest", "nearest")
 hybrid = require("hydra")
---anim = require("animation")
 
 -- display
 function noise(map)
@@ -57,7 +56,7 @@ end
 function love.load()
 
 	prelude = love.audio.newSource("assets/01-prelude.mp3", "static")
-	love.audio.play(prelude)
+	--love.audio.play(prelude)
 
 	--floorTextures = loadTextures(floorTextures, 16, 16)
 	--collisionTextures = loadTextures(collisionTextures, 16, 16)
@@ -65,7 +64,7 @@ function love.load()
 	camera = hybrid.newCamera()
 	player = hybrid.newPlayer("assets/player.png")
 	--map    = hybrid.newMap("assets/testtiles-1.png", 16, 9, 80, 16)
-	map = hybrid.newMap("assets/testtiles-1.png", 10, 10, 80, 16)
+	map = hybrid.newMap("assets/testtiles-1.png", 11, 9, 80, 16)
 	textures = hybrid.newElement("assets/testtiles-1.png", love.graphics.getWidth()*0.75, 0, love.graphics.getWidth()*0.25, height)
 
 	map:load("test.txt")
@@ -82,6 +81,8 @@ function love.load()
 	map:loadTextures(map.layers[1].textures, 16, 16, 1)
 	map:loadTextures(map.layers[2].textures, 16, 16, 2)
 	--map:loadCollisionBoxes(collisionBoxes, 2)
+
+	anim = hybrid.newAnimation("assets/Animation-run.png", 32, 32)
 
 
 	player.ox = player.texture:getPixelHeight()/2
@@ -103,12 +104,26 @@ local x = 0
 function love.update(dt)
 	y = os.clock()
 
+	a = coroutine.create(function()
+		i = 1
+		while(true) do
+			if i > 5 then i = 1 end
+			print(i)
+			i = i + 1
+			coroutine.yield()
+		end
+	end)
+
+	for i = 1,15 do
+		coroutine.resume(a)
+	end
 	--v = direction()
 
 	--map:loadCollision(camera, 2)
 	--v = player:collision(v, camera, map)
 
 	--camera:movement(player, v)
+	anim:play(0, 0)
 	mx = love.mouse.getX()
 	my = love.mouse.getY()
 
@@ -129,7 +144,7 @@ function love.update(dt)
 	textures:move(mx, my)
 
 	-- select a texture based on the position of the mouse
-	-- sets self.quad to the selection and self.layer to the layer selected
+	-- sets anim.quad to the selection and anim.layer to the layer selected
 	textures:selection(mx, my, scale, map)
 
 	if love.mouse.isDown(1) and mx < textures.x then
@@ -176,6 +191,7 @@ function love.draw()
 
 	love.graphics.push()
 	love.graphics.scale(scale, scale)
+	--anim:draw()
 	map:draw(cx, cy, 2)
 
 	textures:draw(scale)
