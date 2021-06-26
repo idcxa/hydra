@@ -1,26 +1,23 @@
 local Player = {}
 Player.__index = Player
 
-function Player:new(file)
-	-- too many variables, will fix
+-- takes a single argument of a table of animations
+function Player:new(anims, x, y, speed)
 	local t = {
-		texture = love.graphics.newImage(file),
-		ps = 14,
-		x = 144,
-		y = love.graphics.getHeight()/2,
-		dx = x,
-		dy = y,
-		angle = 0,
-		sx = 0.2,
-		sy = 0.2,
-		ox = 0.5,
-		oy = 0.5,
-		kx = 0,
-		ky = 0,
-		speed = 5
+		x = x, y = x,
+		anims = anims,
+		tile,
+		quad,
+		speed = speed
 	}
 	setmetatable(t, self)
 	return t
+end
+
+-- switch animation based on the key
+function Player:animation(k)
+	self.quad = self.anims[k].quad
+	self.tile = self.anims[k].tile
 end
 
 function Player:collision(t, camera, map)
@@ -88,11 +85,8 @@ function Player:collision(t, camera, map)
 	return t
 end
 
--- make better you dumb stupid bitch
 function Player:draw()
-	playerTrans = love.math.newTransform(player.dx, player.dy, player.angle, player.sx, player.sy, player.ox, player.oy, player.kx, player.ky)
-	-- need 16x16 player texture!
-	love.graphics.draw(self.texture, playerTrans)
+	love.graphics.draw(self.tile, self.quad, math.floor(self.x), math.floor(self.y))
 end
 
 return Player

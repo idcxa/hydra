@@ -10,8 +10,8 @@ function hy.newCamera()
 	return hy.Camera:new()
 end
 
-function hy.newPlayer(file)
-	return hy.Player:new(file)
+function hy.newPlayer(anims, x, y, speed)
+	return hy.Player:new(anims, x, y, speed)
 end
 
 function hy.newMap(file, width, height, texturesize, pixelsize)
@@ -22,8 +22,8 @@ function hy.newElement(file, x, y, width, height)
 	return hy.Gui:new(file, x, y, width, height)
 end
 
-function hy.newAnimation(file, sx, sy)
-	return hy.Anim:new(file, sx, sy)
+function hy.newAnimation(file, sx, sy, speed, loop)
+	return hy.Anim:new(file, sx, sy, speed, loop)
 end
 
 hy.Camera 	= Camera
