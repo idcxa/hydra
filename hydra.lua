@@ -6,6 +6,8 @@ Display	= require("display")
 Gui	    = require("gui")
 Anim 	= require("animation")
 
+scale = nil
+
 function hy.newCamera()
 	return hy.Camera:new()
 end

@@ -14,16 +14,17 @@ function Map:new(file, width, height, x, pixelsize, layers)
 		pixelsize = pixelsize,
 		layers = {}
 	}
+	scale = t.texturesize/t.pixelsize
 	setmetatable(t, self)
 	return t
 end
 
 -- table of positions, x in pixels, y in pixels, layer group
-function Map:loadTextures(t, x, y, layers)
+function Map:loadTextures(t, x, y, l)
 	for k, v in pairs(t) do
 		t[k] = love.graphics.newQuad(v[1], v[2], x, y, self.tiles:getDimensions())
 	end
-	self.layers[layers].textures = t
+	self.layers[l].textures = t
 	return self
 end
 
@@ -170,14 +171,15 @@ function Map:loadCollision(camera, layer)
 		for i = 1,self.height do
 			local c = self.layers[layer].map[i + (j-1)*self.height]
 			if c > 0 then
-				self.collidables[i + (j-1)*self.height] = collidables[i + (j-1)*self.height] or {}
+				self.collidables[i + (j-1)*self.height] = {}
 				local t = {
 					j*self.texturesize - self.texturesize + camera.x,
 					i*self.texturesize - self.texturesize + camera.y,
 					{0, 0, 16, 16},
 					c
 				}
-				t[3] = map.layers[layer].collision[c]
+				if map.layers[layer].collision ~= nil then
+				t[3] = map.layers[layer].collision[c] end
 				table.insert(self.collidables, t)
 			end
 		end
@@ -189,6 +191,7 @@ end
 function Map:draw(cx, cy, layer)
 	for j = 1,map.width do
 		for i = 1,map.height do
+			print(self.layers[layer].map[i + (j-1)*map.height])
 			local c = map.layers[layer].map[i + (j-1)*map.height]
 			if c > 0 and self.layers[layer].textures[c] ~= nil then
 				love.graphics.draw(self.tiles, self.layers[layer].textures[c], (j*map.texturesize - map.texturesize + cx)/scale, (i*map.texturesize - map.texturesize + cy)/scale)

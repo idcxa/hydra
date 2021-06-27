@@ -4,56 +4,44 @@ Player.__index = Player
 -- takes a single argument of a table of animations
 function Player:new(anims, x, y, speed)
 	local t = {
-		x = x, y = x,
+		x = x, y = y,
 		anims = anims,
 		tile,
-		quad,
-		speed = speed
+		speed = speed*scale
 	}
+	t.quad = t.anims[1].quad
 	setmetatable(t, self)
 	return t
 end
 
+function Player:size()
+	x, y, w, h = self.quad:getViewport()
+	return w, h
+end
+
 -- switch animation based on the key
-function Player:animation(k)
+function Player:setAnimation(k)
 	self.quad = self.anims[k].quad
 	self.tile = self.anims[k].tile
 end
 
-function Player:collision(t, camera, map)
+function Player:playAnimation()
+	for _, v in pairs(self.anims) do
+		v:play()
+	end
+end
+
+function Player:collision(t, camera, map, player)
 	-- texture size
 	local ts = map.texturesize
 	-- player size
-	local ps = map.texturesize*0.8
+	local ps, psy = player:size()
 	-- collision width
 	local cw = 5
-	scale = map.texturesize/map.pixelsize
-
-	-- map border collision
-	-- left
-	if self.x < ps/2 - self.speed/2 then
-		self.x = ps/2
-		camera.pseudox = love.graphics.getWidth()/2
-	end
-	-- right
-	if self.x > map.width * ts - ts/2 + camera.x + self.speed/2 then
-		self.x = map.width * ts - ts/2 + camera.x
-		camera.pseudox = -map.texturesize*map.width + love.graphics.getWidth()/2
-	end
-	-- top
-	if self.y < ts/2 - self.speed/2 then
-		self.y = ts/2
-		camera.pseudoy = love.graphics.getHeight()/2
-	end
-	-- bottom
-	if self.y > map.height * ts - ts/2 + camera.y + self.speed/2 then
-		self.y = map.height * ts - ts/2 + camera.y
-		camera.pseudoy = -map.texturesize*map.height + love.graphics.getHeight()/2
-	end
 
 	-- object collision
 	-- v display coordinates
-	for _, v in pairs(map.collidables) do
+	--[[for _, v in pairs(map.collidables) do
 		if v[2] ~= nil then
 			c = v[3]
 			-- left
@@ -81,12 +69,12 @@ function Player:collision(t, camera, map)
 				t[2] = 0
 			end
 		end
-	end
+	end]]--
 	return t
 end
 
 function Player:draw()
-	love.graphics.draw(self.tile, self.quad, math.floor(self.x), math.floor(self.y))
+	love.graphics.draw(self.tile, self.quad, math.floor(self.x/scale), math.floor(self.y/scale))
 end
 
 return Player

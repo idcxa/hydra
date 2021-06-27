@@ -26,6 +26,7 @@ end
 function Gui:selection(mx, my, scale, map)
 	s = scale*16
 	if love.mouse.isDown(1) then
+		print(mx, self.x)
 		if mx > self.x + 5 then
 			--self.select[1] = math.floor(((math.floor(mx/s)*s)-self.x)/s)
 			--self.select[2] = ((math.floor(my/s)*s))/s

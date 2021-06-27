@@ -3,7 +3,6 @@ hybrid = require("hydra")
 
 -- display
 function noise(map)
-
 	map.layers[1].map = {}
 	map.layers[2].map = {}
 	for j = 1,map.width do
@@ -69,7 +68,7 @@ function love.load()
 	map = hybrid.newMap("assets/testtiles-1.png", 16, 9, love.graphics.getWidth()/5, 16)
 	textures = hybrid.newElement("assets/testtiles-1.png", love.graphics.getWidth()*0.75, 0, love.graphics.getWidth()*0.25, height)
 
-	map:load("test.txt")
+	map:load("maps/test.map")
 
 	--for k, v in pairs(map.layers) do print(k, v) end
 	--print(map.layers[2])
@@ -131,7 +130,7 @@ function love.update(dt)
 	--print(scale)
 	y = os.clock()
 
-		player:animation(1)
+	player:animation(1)
 	v = direction()
 
 	--map:loadCollision(camera, 2)
