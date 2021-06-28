@@ -1,62 +1,98 @@
 local Player = {}
 Player.__index = Player
 
-function Player:new(file)
-	-- too many variables, will fix
+-- takes a single argument of a table of animations
+function Player:new(anims, x, y, speed)
 	local t = {
-		texture = love.graphics.newImage(file),
-		ps = 14,
-		x = 144,
-		y = love.graphics.getHeight()/2,
-		dx = x,
-		dy = y,
-		angle = 0,
-		sx = 0.2,
-		sy = 0.2,
-		ox = 0.5,
-		oy = 0.5,
-		kx = 0,
-		ky = 0,
-		speed = 5
+		x = x, y = y,
+		anims = anims,
+		tile,
+		speed = speed*scale
 	}
+	t.quad = t.anims[1].quad
 	setmetatable(t, self)
 	return t
+end
+
+function Player:size()
+	x, y, w, h = self.quad:getViewport()
+	return w, h
+end
+
+-- switch animation based on the key
+function Player:setAnimation(k)
+	self.quad = self.anims[k].quad
+	self.tile = self.anims[k].tile
+end
+
+function Player:playAnimation()
+	for _, v in pairs(self.anims) do
+		v:play()
+	end
 end
 
 function Player:collision(t, camera, map)
 	-- texture size
 	local ts = map.texturesize
 	-- player size
-	local ps = map.texturesize*0.8
+	local psx, psy = self:size()
+	psx = psx*scale
+	psy = psy*scale
+	-- player position
+	local px = math.floor((player.x+scale/2)/scale)*scale - math.floor((camera.x+scale/2)/scale)*scale
+	local py = math.floor((player.y+scale/2)/scale)*scale - math.floor((camera.y+scale/2)/scale)*scale
+	--local py = self.y - math.floor(camera.y/scale)*scale
+	--local px = self.x - camera.x
+	--local py = self.y - camera.y
+	--px = math.floor((px+(scale/2))/scale)*scale
 	-- collision width
-	local cw = 5
-	scale = map.texturesize/map.pixelsize
+	local cw = scale*2
 
-	-- map border collision
-	-- left
-	if self.x < ps/2 - self.speed/2 then
-		self.x = ps/2
-		camera.pseudox = love.graphics.getWidth()/2
+	print("========================")
+	print(px, py)
+	print(map.width, map.height)
+	print("========================")
+	for k, v in pairs(map.layers[2].map) do
+		if v > 0 then
+			x = (math.floor(k/map.height+0.9))*ts
+			y = (k - map.height*(x/ts-1))*ts
+
+			--print("---------")
+			print((k/map.height))
+			print(x/ts, y/ts, k)
+
+			-- left
+			if x-ts-psx <= px and px < x and
+				y-ts-psy < py and py < y
+				and t[1] <= 0 then
+				t[1] = 0
+			end
+			-- right
+			if x >= px and px > x-ts-psy and
+				y - ts - psy < py and py < y
+				and t[1] >= 0 then
+				t[1] = 0
+			end
+			-- top
+			if y-ts-psy <= py and py < y and
+				x-ts-psx < px and px < x
+				and t[2] <= 0 then
+				t[2] = 0
+			end
+			-- bottom
+			if y >= py and py > y-ts-psy and
+				x-ts-psx < px and px < x
+				and t[2] >= 0 then
+				t[2] = 0
+			end
+		end
 	end
-	-- right
-	if self.x > map.width * ts - ts/2 + camera.x + self.speed/2 then
-		self.x = map.width * ts - ts/2 + camera.x
-		camera.pseudox = -map.texturesize*map.width + love.graphics.getWidth()/2
-	end
-	-- top
-	if self.y < ts/2 - self.speed/2 then
-		self.y = ts/2
-		camera.pseudoy = love.graphics.getHeight()/2
-	end
-	-- bottom
-	if self.y > map.height * ts - ts/2 + camera.y + self.speed/2 then
-		self.y = map.height * ts - ts/2 + camera.y
-		camera.pseudoy = -map.texturesize*map.height + love.graphics.getHeight()/2
-	end
+
+	--player.x = camera.x + p
 
 	-- object collision
 	-- v display coordinates
-	for _, v in pairs(map.collidables) do
+	--[[for _, v in pairs(map.collidables) do
 		if v[2] ~= nil then
 			c = v[3]
 			-- left
@@ -84,15 +120,12 @@ function Player:collision(t, camera, map)
 				t[2] = 0
 			end
 		end
-	end
+	end]]--
 	return t
 end
 
--- make better you dumb stupid bitch
-function Player:draw()
-	playerTrans = love.math.newTransform(player.dx, player.dy, player.angle, player.sx, player.sy, player.ox, player.oy, player.kx, player.ky)
-	-- need 16x16 player texture!
-	love.graphics.draw(self.texture, playerTrans)
+function Player:draw(px, py)
+	love.graphics.draw(self.tile, self.quad, px/scale, py/scale)
 end
 
 return Player
