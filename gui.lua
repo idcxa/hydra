@@ -26,7 +26,6 @@ end
 function Gui:selection(mx, my, scale, map)
 	s = scale*16
 	if love.mouse.isDown(1) then
-		print(mx, self.x)
 		if mx > self.x + 5 then
 			--self.select[1] = math.floor(((math.floor(mx/s)*s)-self.x)/s)
 			--self.select[2] = ((math.floor(my/s)*s))/s
@@ -48,7 +47,7 @@ function Gui:selection(mx, my, scale, map)
 		self.layer = 3
 	end
 	if love.keyboard.isDown("0") then
-		return nil
+		self.quad = nil
 	end
 
 	self.quad = love.graphics.newQuad(16*self.select[1], 16*self.select[2], 16, 16, map.tiles:getDimensions())

@@ -22,7 +22,9 @@ end
 -- table of positions, x in pixels, y in pixels, layer group
 function Map:loadTextures(t, x, y, l)
 	for k, v in pairs(t) do
-		t[k] = love.graphics.newQuad(v[1], v[2], x, y, self.tiles:getDimensions())
+		print(v[1], v[2])
+		if v[1] ~= nil then
+			t[k] = love.graphics.newQuad(v[1], v[2], x, y, self.tiles:getDimensions()) end
 	end
 	self.layers[l].textures = t
 	return self
@@ -55,6 +57,7 @@ function Map:set(x, y, l, quad)
 		table.insert(self.layers[l].textures, quad)
 		c = #self.layers[l].textures
 	end
+	if quad == nil then c = 0 end
 	self.layers[l].map[y + (x-1)*self.height] = c
 end
 
@@ -80,8 +83,6 @@ function Map:load(filename)
 	end
 
 	self.layers = {}
-	self.layers[1] = {}
-	self.layers[2] = {}
 	layer = 0
 	local mode
 	for line in file:lines() do
@@ -105,6 +106,7 @@ function Map:load(filename)
 		end
 		if t == "l" then
 			layer = tonumber(temp[2])
+			self.layers[layer] = {}
 			self.layers[layer].textures = {}
 			self.layers[layer].map = {}
 			mode = nil
@@ -123,6 +125,9 @@ function Map:load(filename)
 				table.insert(self.layers[layer].map, tonumber(v))
 			end
 		end
+	end
+	for i = 1,layer do
+		self:loadTextures(self.layers[i].textures, self.pixelsize, self.pixelsize, i)
 	end
 	return self
 end
@@ -191,7 +196,6 @@ end
 function Map:draw(cx, cy, layer)
 	for j = 1,map.width do
 		for i = 1,map.height do
-			print(self.layers[layer].map[i + (j-1)*map.height])
 			local c = map.layers[layer].map[i + (j-1)*map.height]
 			if c > 0 and self.layers[layer].textures[c] ~= nil then
 				love.graphics.draw(self.tiles, self.layers[layer].textures[c], (j*map.texturesize - map.texturesize + cx)/scale, (i*map.texturesize - map.texturesize + cy)/scale)

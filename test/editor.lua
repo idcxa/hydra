@@ -22,7 +22,6 @@ end
 
 function direction()
 	movement = {0,0}
-	player:animation(1)
 	angle = player.speed*math.sin(45)
 	if love.keyboard.isDown("up") then
 		movement[2] = player.speed
@@ -31,7 +30,6 @@ function direction()
 	end
 	if love.keyboard.isDown("left") then
 		movement[1] = player.speed
-		player:animation(3)
 		if love.keyboard.isDown("up") then
 			movement[1] = angle
 			movement[2] = angle
@@ -42,7 +40,6 @@ function direction()
 		end
 	elseif love.keyboard.isDown("right")  then
 		movement[1] = -player.speed
-		player:animation(2)
 		if love.keyboard.isDown("up") then
 			movement[1] = -angle
 			movement[2] = angle
@@ -80,11 +77,12 @@ function love.load()
 
 	map:loadTextures(map.layers[1].textures, 16, 16, 1)
 	map:loadTextures(map.layers[2].textures, 16, 16, 2)
+	map:loadTextures(map.layers[3].textures, 16, 16, 2)
 	--map:loadCollisionBoxes(collisionBoxes, 2)
 
 	idle = hybrid.newAnimation("assets/Animation-idle.png", 32, 32, 8, true)
-	runr = hybrid.newAnimation("assets/Animation-run.png", 32, 32, 8, true)
-	runl = hybrid.newAnimation("assets/Animation-run-left.png", 32, 32, 8, true)
+	runr = hybrid.newAnimation("assets/Animation-runr.png", 32, 32, 8, true)
+	runl = hybrid.newAnimation("assets/Animation-runl.png", 32, 32, 8, true)
 
 	player = hybrid.newPlayer({idle, runr, runl}, 0, 0, 1)
 	--player.speed = 0.1*scale
@@ -130,7 +128,6 @@ function love.update(dt)
 	--print(scale)
 	y = os.clock()
 
-	player:animation(1)
 	v = direction()
 
 	--map:loadCollision(camera, 2)
@@ -138,8 +135,8 @@ function love.update(dt)
 
 	--camera:movement(player, v)
 	--print(player.x, player.y)
-	player.x = player.x - v[1]
-	player.y = player.y - v[2]
+	camera.x = camera.x + v[1]
+	camera.y = camera.y + v[2]
 	--anim:play()
 	--player.anims[1]:play()
 	for _, v in pairs(player.anims) do
@@ -168,7 +165,6 @@ function love.update(dt)
 		map:set(x, y, textures.layer, textures.quad)
 	end
 
-
 	player.dx = math.floor(player.x/scale)*scale
 	player.dy = math.floor(player.y/scale)*scale
 
@@ -177,7 +173,7 @@ function love.update(dt)
 		noise(map)
 	end
 	if love.keyboard.isDown("lctrl") and love.keyboard.isDown("s") then
-		map:save("test.txt")
+		map:save("maps/test.map")
 		love.event.quit()
 	end
 	if love.keyboard.isDown("f") then
@@ -198,9 +194,8 @@ function love.draw()
 	love.graphics.push()
 	love.graphics.scale(scale, scale)
 	map:draw(cx, cy, 1)
-	--anim:draw(cx, cy)
-	player:draw()
 	map:draw(cx, cy, 2)
+	map:draw(cx, cy, 3)
 
 	textures:draw(scale)
 	love.graphics.pop()
