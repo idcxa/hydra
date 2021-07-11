@@ -2,7 +2,7 @@ love.graphics.setDefaultFilter("nearest", "nearest")
 hybrid = require("hydra")
 
 -- display
-function noise(map)
+local function noise(map)
 	map.layers[1].map = {}
 	map.layers[2].map = {}
 	for j = 1,map.width do
@@ -20,7 +20,7 @@ function noise(map)
 	return map
 end
 
-function direction()
+local function direction()
 	movement = {0,0}
 	angle = player.speed*math.sin(45)
 	if love.keyboard.isDown("up") then
@@ -57,44 +57,53 @@ function love.load()
 	prelude = love.audio.newSource("assets/01-prelude.mp3", "static")
 	--love.audio.play(prelude)
 
-	--floorTextures = loadTextures(floorTextures, 16, 16)
-	--collisionTextures = loadTextures(collisionTextures, 16, 16)
-
+	-- new camera
 	camera = hybrid.newCamera()
-	--map    = hybrid.newMap("assets/testtiles-1.png", 16, 9, 80, 16)
-	map = hybrid.newMap("assets/testtiles-1.png", 16, 9, love.graphics.getWidth()/5, 16)
+
+	-- make a new map
+		-- arguments: tiles, sizex, sizey, 16
+	map = hybrid.newMap("maps/test.map")
+
+	-- new gui element dont worry about it
 	textures = hybrid.newElement("assets/testtiles-1.png", love.graphics.getWidth()*0.75, 0, love.graphics.getWidth()*0.25, height)
 
+	-- loads the map file
 	map:load("maps/test.map")
 
-	--for k, v in pairs(map.layers) do print(k, v) end
-	--print(map.layers[2])
+	-- set global texturesize
 	map.texturesize = math.floor(love.graphics.getWidth()/map.pixelsize)
 
+	-- set global scale
 	scale = map.texturesize/map.pixelsize
+
+	-- map size
 	mapwx = map.width * map.texturesize - love.graphics.getWidth()
 	mapwy = map.height * map.texturesize - love.graphics.getHeight()
 
-	map:loadTextures(map.layers[1].textures, 16, 16, 1)
-	map:loadTextures(map.layers[2].textures, 16, 16, 2)
-	map:loadTextures(map.layers[3].textures, 16, 16, 2)
+	-- load all the textures
+	-- should not be required
+	--map:loadTextures(map.layers[1].textures, 16, 16, 1)
+	--map:loadTextures(map.layers[2].textures, 16, 16, 2)
+	--map:loadTextures(map.layers[3].textures, 16, 16, 2)
 	--map:loadCollisionBoxes(collisionBoxes, 2)
 
+	-- load animations
+		-- file, size, speed, repeat boolean
 	idle = hybrid.newAnimation("assets/Animation-idle.png", 32, 32, 8, true)
 	runr = hybrid.newAnimation("assets/Animation-runr.png", 32, 32, 8, true)
 	runl = hybrid.newAnimation("assets/Animation-runl.png", 32, 32, 8, true)
 
+	-- make a new player object with animations
+		-- animation table, x, y, speed
 	player = hybrid.newPlayer({idle, runr, runl}, 0, 0, 1)
+
 	--player.speed = 0.1*scale
 
 	--player:animation(idle)
 
-	--player.ox = player.texture:getPixelHeight()/2
-	--player.oy = player.texture:getPixelWidth()/2
-	--player.sx = map.texturesize * 0.8 / player.texture:getPixelHeight()
-	--player.sy = map.texturesize * 0.8 / player.texture:getPixelWidth()
-
+	-- required for the camera to work with the player and the map
 	camera:set(player, map)
+
 	--noise(map)
 end
 
@@ -117,6 +126,8 @@ function love.update(dt)
 	end
 
 	--print(map.texturesize)
+
+	-- set scaling stuff
 	scale = math.floor(map.texturesize/map.pixelsize)
 	map.texturesize = map.pixelsize*scale
 
@@ -128,6 +139,7 @@ function love.update(dt)
 	--print(scale)
 	y = os.clock()
 
+	-- local function
 	v = direction()
 
 	--map:loadCollision(camera, 2)
@@ -174,7 +186,7 @@ function love.update(dt)
 	end
 	if love.keyboard.isDown("lctrl") and love.keyboard.isDown("s") then
 		map:save("maps/test.map")
-		love.event.quit()
+		--love.event.quit()
 	end
 	if love.keyboard.isDown("f") then
 		love.window.setFullscreen(true, "desktop")
