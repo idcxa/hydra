@@ -1,6 +1,15 @@
 local Camera = {}
 Camera.__index = Camera
 
+--[[
+1. camera follows psuedo camera 		[state 1]
+2. camera hits border 					[enter state 2]
+3. camera stops following pseudo camera	[state 2]
+   and player starts moving
+4. psuedo camera comes away from border [enter state 1]
+5. camera follows pseudo camera			[state 1]
+]]--
+
 function Camera:new()
 	local t = {x, y, pseudox, pseudoy, xmode, ymode}
 	setmetatable(t, self)
@@ -63,6 +72,12 @@ function Camera:movement(player, v)
 		player.y = love.graphics.getHeight()/2 - psy*scale/2
 	else
 		player.y = player.y - v[2]
+	end
+	if map.width * map.texturesize < love.graphics.getWidth() then
+		self.x = (love.graphics.getWidth() - map.width*map.texturesize)/2
+	end
+	if map.height * map.texturesize < love.graphics.getHeight() then
+		self.y = (love.graphics.getHeight() - map.height*map.texturesize)/2
 	end
 end
 

@@ -23,14 +23,15 @@ end
 
 function direction()
 	movement = {0,0}
-	angle = player.speed*math.sin(45)
+	local angle = player.speed
+	local speed = player.speed
 	if love.keyboard.isDown("up") then
-		movement[2] = player.speed
+		movement[2] = speed
 	elseif love.keyboard.isDown("down")  then
-		movement[2] = -player.speed
+		movement[2] = -speed
 	end
 	if love.keyboard.isDown("left") then
-		movement[1] = player.speed
+		movement[1] = speed
 		if love.keyboard.isDown("up") then
 			movement[1] = angle
 			movement[2] = angle
@@ -40,7 +41,7 @@ function direction()
 			movement[2] = -angle
 		end
 	elseif love.keyboard.isDown("right")  then
-		movement[1] = -player.speed
+		movement[1] = -speed
 		if love.keyboard.isDown("up") then
 			movement[1] = -angle
 			movement[2] = angle
@@ -82,8 +83,14 @@ function love.load()
 	test = hybrid.newAnimation("assets/testplayer.png", 14, 14, 8, true)
 
 	camera = hybrid.newCamera()
-	map    = hybrid.newMap("assets/testtiles-1.png", 11, 9, 160, 16)
-	player = hybrid.newPlayer({test}, 700, 500, 1)
+	map    = hybrid.newMap("maps/test.map")
+
+	map.pixelsize = 16
+	map.texturesize = math.floor(love.graphics.getWidth()/map.pixelsize)
+	map.texturesize = 80
+	scale = map.texturesize/map.pixelsize
+
+	player = hybrid.newPlayer({test}, 160*3+10, 1000, 1)
 
 	--map:loadTextures(floorTextures, 16, 16, 1)
 	--map:loadTextures(collisionTextures, 16, 16, 2)
@@ -100,19 +107,10 @@ function love.load()
 	--map:loadCollisionBoxes(collisionBoxes, 2)
 
 	camera:set(player, map)
+	--map.width = 16
 	--noise(map)
-	collisionTest()
+	--collisionTest()
 end
-
-
---[[
-1. camera follows psuedo camera 		[state 1]
-2. camera hits border 					[enter state 2]
-3. camera stops following pseudo camera	[state 2]
-   and player starts moving
-4. psuedo camera comes away from border [enter state 1]
-5. camera follows pseudo camera			[state 1]
-]]--
 
 --local c = math.floor(1 * map.layers[2].map[i + (j-1)*map.height] + 0.2)
 
@@ -125,7 +123,7 @@ function love.update(dt)
 
 	v = direction()
 
-	io.write("\n\n")
+	--io.write("\n\n")
 	--[[
 	if v[1] > 0 then
 		player:setAnimation(3)
@@ -139,7 +137,7 @@ function love.update(dt)
 	--print(camera.x, camera.pseudox, player.x)
 
 	--map:loadCollision(camera, 2)
-	v = player:collision(v, camera, map, player)
+	v = player:collision(v, camera, map, 2)
 
 
 	camera:movement(player, v)
@@ -151,6 +149,23 @@ function love.update(dt)
 	end
 end
 
+local function drawLayerBoxes(map, layer, size)
+	for j = 1,map.width do
+		for i = 1,map.height do
+			local c = map.layers[layer].map[i + (j-1)*map.height]
+			if c > 0 then
+				love.graphics.setColor(1, 0, 0, 1)
+				love.graphics.setLineWidth(0.1)
+				love.graphics.rectangle("line",
+				(j*map.texturesize - map.texturesize + cx)/scale,
+				(i*map.texturesize - map.texturesize + cy)/scale,
+				16, 16)
+				love.graphics.setColor(1, 1, 1, 1)
+			end
+		end
+	end
+end
+
 function love.draw()
 	x = os.clock()
 
@@ -159,17 +174,16 @@ function love.draw()
 	--cx = camera.x
 	--cy = camera.y
 
-	px = math.floor((player.x+scale/2)/scale)*scale
-	py = math.floor((player.y+scale/2)/scale)*scale
 	--px = player.x
 	--py = player.y
 
 	love.graphics.push()
 	love.graphics.scale(scale, scale)
 	map:draw(cx, cy, 1)
-	player:draw(px, py)
+	player:draw()
 	map:draw(cx, cy, 2)
-	--map:draw(cx, cy, 3)
+	map:draw(cx, cy, 3)
+	drawLayerBoxes(map, 2)
 	love.graphics.pop()
 
 	love.graphics.setColor(0, 0, 0, 1)

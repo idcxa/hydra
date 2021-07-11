@@ -3,26 +3,19 @@ Map.__index = Map
 
 -- new map --
 
-function Map:new(file, width, height, x, pixelsize, layers)
-	layers = layers or {}
+function Map:new(file)
 	local t = {
 		file = file,
-		tiles = love.graphics.newImage(file),
-		width = width,
-		height = height,
-		texturesize = x,
-		pixelsize = pixelsize,
 		layers = {}
 	}
-	scale = t.texturesize/t.pixelsize
 	setmetatable(t, self)
 	return t
 end
 
 -- table of positions, x in pixels, y in pixels, layer group
 function Map:loadTextures(t, x, y, l)
+	--self.tiles = love.graphics.newImage(file)
 	for k, v in pairs(t) do
-		print(v[1], v[2])
 		if v[1] ~= nil then
 			t[k] = love.graphics.newQuad(v[1], v[2], x, y, self.tiles:getDimensions()) end
 	end
@@ -138,7 +131,7 @@ function Map:save(filename)
 	--file = io.open(filename, "a")
 	file:write("w ", self.width, "\n")
 	file:write("h ", self.height, "\n")
-	--file:write("ts ", self.texturesize, "\n")
+	--file:write("ts ", texturesize, "\n")
 	file:write("ps ", self.pixelsize, "\n")
 	for k, v in pairs(self.layers) do
 		file:write("l ", k, "\n")
@@ -178,8 +171,8 @@ function Map:loadCollision(camera, layer)
 			if c > 0 then
 				self.collidables[i + (j-1)*self.height] = {}
 				local t = {
-					j*self.texturesize - self.texturesize + camera.x,
-					i*self.texturesize - self.texturesize + camera.y,
+					j*texturesize - texturesize + camera.x,
+					i*texturesize - texturesize + camera.y,
 					{0, 0, 16, 16},
 					c
 				}

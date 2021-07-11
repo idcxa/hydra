@@ -2,7 +2,7 @@ local hy = {}
 
 Camera 	= require("camera")
 Player 	= require("player")
-Display	= require("display")
+Map		= require("map")
 Gui	    = require("gui")
 Anim 	= require("animation")
 
@@ -16,8 +16,8 @@ function hy.newPlayer(anims, x, y, speed)
 	return hy.Player:new(anims, x, y, speed)
 end
 
-function hy.newMap(file, width, height, texturesize, pixelsize)
-	return hy.Map:new(file, width, height, texturesize, pixelsize)
+function hy.newMap(file)
+	return hy.Map:new(file)
 end
 
 function hy.newElement(file, x, y, width, height)
@@ -30,7 +30,7 @@ end
 
 hy.Camera 	= Camera
 hy.Player 	= Player
-hy.Map 	  	= Display
+hy.Map 	  	= Map
 hy.Gui    	= Gui
 hy.Anim   	= Anim
 
