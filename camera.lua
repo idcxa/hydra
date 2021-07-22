@@ -17,7 +17,7 @@ function Camera:new()
 end
 
 function Camera:set(player, map)
-	psx, psy = player:size()
+	local psx, psy = player:size()
 	if player.x > love.graphics.getWidth()/2 then
 		self.x = -player.x + love.graphics.getWidth()/2
 		self.pseudox = self.x

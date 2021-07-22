@@ -4,10 +4,9 @@ Player.__index = Player
 -- takes a single argument of a table of animations
 function Player:new(anims, x, y, speed)
 	local t = {
-		x = x, y = y,
+		x = x*16, y = y*16,
 		anims = anims,
-		tile,
-		speed = speed*scale
+		speed = speed
 	}
 	t.quad = t.anims[1].quad
 	setmetatable(t, self)
@@ -15,7 +14,7 @@ function Player:new(anims, x, y, speed)
 end
 
 function Player:size()
-	x, y, w, h = self.quad:getViewport()
+	local _, _, w, h = self.quad:getViewport()
 	return w, h
 end
 
@@ -52,8 +51,8 @@ function Player:collision(t, camera, map, layer)
 	-- object collision
 	for k, v in pairs(map.layers[layer].map) do
 		if v > 0 then
-			x = (math.floor(k/map.height+0.9))*ts
-			y = (k - map.height*(x/ts-1))*ts
+			local x = (math.floor(k/map.height+0.95))*ts
+			local y = (k - map.height*(x/ts-1))*ts
 			-- left
 			if x-ts-psx <= px and px < x and
 				y-ts-psy < py and py < y
@@ -88,9 +87,11 @@ function Player:collision(t, camera, map, layer)
 end
 
 function Player:draw(px, py)
-	px = math.floor((player.x+scale/2)/scale)*scale
-	py = math.floor((player.y+scale/2)/scale)*scale
-	love.graphics.draw(self.tile, self.quad, px/scale, py/scale)
+	if px == nil or py == nil then
+		px = math.floor((player.x+scale/2)/scale)*scale
+		py = math.floor((player.y+scale/2)/scale)*scale
+	end
+	love.graphics.draw(self.tile, self.quad, px, py)
 end
 
 return Player

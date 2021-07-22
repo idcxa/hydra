@@ -6,6 +6,8 @@ hybrid = require("hydra")
 function noise(map)
 	map.layers[1].map = {}
 	map.layers[2].map = {}
+	map.layers[3] = {}
+	map.layers[3].map = {}
 	for j = 1,map.width do
 		for i = 1,map.height do
 			map.layers[2].map[i+map.height*(j-1)] = love.math.noise(i+love.math.random(),j+love.math.random())
@@ -16,6 +18,7 @@ function noise(map)
 				map.layers[2].map[i+map.height*(j-1)] = c
 			end
 			map.layers[1].map[i+map.height*(j-1)] = math.random(#map.layers[1].textures)
+			map.layers[3].map[i+map.height*(j-1)] = 0
 		end
 	end
 	return map
@@ -92,13 +95,11 @@ function love.load()
 
 	player = hybrid.newPlayer({test}, 160*3+10, 1000, 1)
 
-	--map:loadTextures(floorTextures, 16, 16, 1)
-	--map:loadTextures(collisionTextures, 16, 16, 2)
+	map:loadTextures(floorTextures, 16, 16, 1, "assets/testtiles-1.png")
+	map:loadTextures(collisionTextures, 16, 16, 2, "assets/testtiles-1.png")
 
-	map:load("maps/test.map")
+	--map:load("maps/test.map")
 
-	mapwx = map.width * map.texturesize - love.graphics.getWidth()
-	mapwy = map.height * map.texturesize - love.graphics.getHeight()
 
 	--map:loadTextures(map.layers[1].textures, 16, 16, 1)
 	--map:loadTextures(map.layers[2].textures, 16, 16, 2)
@@ -107,8 +108,13 @@ function love.load()
 	--map:loadCollisionBoxes(collisionBoxes, 2)
 
 	camera:set(player, map)
-	--map.width = 16
-	--noise(map)
+	map.width = 16
+	map.height = 16
+
+	mapwx = map.width * map.texturesize - love.graphics.getWidth()
+	mapwy = map.height * map.texturesize - love.graphics.getHeight()
+
+	noise(map)
 	--collisionTest()
 end
 

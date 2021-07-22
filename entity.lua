@@ -1,12 +1,11 @@
 local Entity = {}
-Entity.__index = entity
+Entity.__index = Entity
 
 -- takes a single argument of a table of animations
 function Entity:new(anims, x, y, speed)
 	local t = {
 		x = x, y = y,
 		anims = anims,
-		tile,
 		speed = speed*scale
 	}
 	t.quad = t.anims[1].quad
@@ -14,7 +13,7 @@ function Entity:new(anims, x, y, speed)
 	return t
 end
 
-function Player:draw(px, py)
+function Entity:draw(px, py)
 	love.graphics.draw(self.tile, self.quad, px/scale, py/scale)
 end
 

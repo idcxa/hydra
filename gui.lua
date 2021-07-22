@@ -9,7 +9,7 @@ function Gui:new(file, x, y, width, height)
 		width = width,
 		height = height,
 		followmouse = false,
-		select = {x, y},
+		select = {0, 2},
 		quad,
 		layer = 1
 	}
@@ -17,20 +17,19 @@ function Gui:new(file, x, y, width, height)
 	return t
 end
 
-function Gui:move(mx, my)
-	if love.mouse.isDown(2) then
+function Gui:move(mx)
+	if love.mouse.isDown(2) and mx >= self.x - 50 then
 		self.x = mx
 	end
 end
 
 function Gui:selection(mx, my, scale, map)
-	s = scale*16
+	local s = scale*16
 	if love.mouse.isDown(1) then
 		if mx > self.x + 5 then
 			--self.select[1] = math.floor(((math.floor(mx/s)*s)-self.x)/s)
 			--self.select[2] = ((math.floor(my/s)*s))/s
 			local x = (mx-self.x - (mx+self.x)%s)/s
-			local x = (mx-self.x - (mx-self.x)%s)/s
 			local y = (my - (my)%s)/s
 			self.select[1] = x
 			self.select[2] = y
@@ -48,8 +47,16 @@ function Gui:selection(mx, my, scale, map)
 	end
 	if love.keyboard.isDown("0") then
 		self.quad = nil
+		self.select[1] = 5000
+		self.select[2] = 5000
 	end
-
+	if love.keyboard.isDown("c") then
+		self.layer = "collision"
+		return
+	end
+	if love.keyboard.isDown("p") then
+		self.layer = "player"
+	end
 	self.quad = love.graphics.newQuad(16*self.select[1], 16*self.select[2], 16, 16, map.tiles:getDimensions())
 end
 
