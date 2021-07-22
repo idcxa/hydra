@@ -1,3 +1,5 @@
+.envrc
+shell.nix
 build
 build/
 test.txt
